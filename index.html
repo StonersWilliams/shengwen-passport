@@ -37,12 +37,13 @@
     }
     .sub { color: #C9AE92; font-size: 14px; letter-spacing: 3px; margin: 0; }
     .rule { width: 64px; height: 2px; margin: 18px auto 0; background: linear-gradient(90deg, transparent, #E8C872, transparent); }
-    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+    .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
     a.card {
       display: block;
       text-decoration: none;
       color: inherit;
-      padding: 20px 22px;
+      padding: 22px 24px;
       border-radius: 14px;
       background: rgba(42, 22, 15, 0.86);
       border: 1px solid rgba(232, 200, 114, 0.22);
@@ -50,7 +51,7 @@
     }
     a.card:hover { transform: translateY(-4px); border-color: rgba(232, 200, 114, 0.55); box-shadow: 0 14px 34px rgba(0, 0, 0, .45); }
     .card h2 { margin: 0 0 8px; font-size: 19px; font-weight: 600; color: #F2D98E; letter-spacing: 1px; }
-    .card p { margin: 0; font-size: 13px; line-height: 1.75; color: #C9AE92; }
+    .card p { margin: 0; font-size: 13.5px; line-height: 1.85; color: #C9AE92; }
     .card .tag { display: inline-block; margin-top: 12px; font-size: 11px; letter-spacing: 1px; color: #E8C872; opacity: .8; }
     footer { margin-top: 30px; text-align: center; font-size: 12px; line-height: 2; color: #8C7259; }
     footer a { color: #C9AE92; }
