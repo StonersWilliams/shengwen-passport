@@ -1,0 +1,1453 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>跟读挑战 - 声纹相似度对比</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;500;600;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../colors_and_type.css">
+  <style>
+    .page-header {
+      padding-top: var(--space-8);
+      position: relative;
+    }
+    .page-header::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 60px;
+      background: radial-gradient(ellipse at center, rgba(232, 200, 114, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .challenge-word-section {
+      padding: 0 var(--space-4);
+      margin-bottom: var(--space-4);
+    }
+    .challenge-action {
+      padding: var(--space-6) var(--space-4) var(--space-4);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .challenge-hint {
+      margin-top: var(--space-5);
+      max-width: 260px;
+    }
+    .play-standard-btn {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      background: rgba(232, 200, 114, 0.15);
+      border: 1px solid var(--border-gold-strong);
+      color: var(--text-gold);
+      padding: var(--space-2) var(--space-4);
+      border-radius: var(--radius-full);
+      font-size: var(--font-size-sm);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      font-family: var(--font-body);
+    }
+    .play-standard-btn:hover {
+      background: rgba(232, 200, 114, 0.25);
+    }
+    .play-standard-btn svg {
+      width: 14px;
+      height: 14px;
+      fill: currentColor;
+    }
+    .standard-audio-row {
+      display: flex;
+      align-items: center;
+      gap: var(--space-3);
+      margin-top: var(--space-3);
+    }
+    .standard-audio-bar {
+      flex: 1;
+      height: 4px;
+      background: rgba(31, 15, 10, 0.8);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+    .standard-audio-fill {
+      width: 65%;
+      height: 100%;
+      background: var(--qiang-gold-gradient);
+      border-radius: var(--radius-full);
+    }
+    .standard-audio-time {
+      font-size: var(--font-size-xs);
+      color: var(--text-muted);
+      min-width: 40px;
+      text-align: right;
+    }
+    .feedback-section {
+      padding: 0 var(--space-4) var(--space-6);
+    }
+
+    /* 关卡进度 */
+    .level-progress {
+      margin: 0 var(--space-4) var(--space-4);
+      padding: var(--space-4);
+      background: var(--bg-card);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-lg);
+      position: relative;
+    }
+    .level-progress::before,
+    .level-progress::after {
+      content: '';
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      pointer-events: none;
+    }
+    .level-progress::before {
+      top: 6px; left: 6px;
+      border-top: 1.5px solid var(--qiang-gold);
+      border-left: 1.5px solid var(--qiang-gold);
+      border-top-left-radius: 3px;
+      opacity: 0.5;
+    }
+    .level-progress::after {
+      bottom: 6px; right: 6px;
+      border-bottom: 1.5px solid var(--qiang-gold);
+      border-right: 1.5px solid var(--qiang-gold);
+      border-bottom-right-radius: 3px;
+      opacity: 0.5;
+    }
+    .level-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-3);
+    }
+    .level-title {
+      font-family: "ZCOOL XiaoWei", var(--font-heading);
+      font-size: var(--font-size-md);
+      color: var(--text-gold);
+      letter-spacing: 1px;
+    }
+    .level-badge {
+      font-size: var(--font-size-xs);
+      padding: 2px 10px;
+      background: var(--qiang-red-gradient);
+      color: #FFF;
+      border-radius: var(--radius-full);
+    }
+    .level-steps {
+      display: flex;
+      gap: var(--space-2);
+      margin-top: var(--space-3);
+    }
+    .level-step {
+      flex: 1;
+      height: 4px;
+      background: rgba(31, 15, 10, 0.6);
+      border-radius: var(--radius-full);
+      overflow: hidden;
+    }
+    .level-step.done {
+      background: var(--qiang-gold-gradient);
+    }
+    .level-step.current {
+      background: rgba(31, 15, 10, 0.6);
+    }
+    .level-step.current::before {
+      content: '';
+      display: block;
+      width: 50%;
+      height: 100%;
+      background: var(--qiang-red-gradient);
+      border-radius: var(--radius-full);
+    }
+
+    /* 跟读按钮增强 */
+    .challenge-action-title {
+      font-family: "ZCOOL XiaoWei", var(--font-heading);
+      font-size: var(--font-size-md);
+      color: var(--text-gold);
+      margin-bottom: var(--space-4);
+      letter-spacing: 2px;
+      text-align: center;
+    }
+
+    /* 声纹对比增强 */
+    .waveform-compare {
+      position: relative;
+    }
+    .compare-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-3);
+    }
+    .compare-title {
+      font-size: var(--font-size-xs);
+      color: var(--text-muted);
+      letter-spacing: 1px;
+    }
+    .score-badge {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-family: "ZCOOL XiaoWei", var(--font-heading);
+      font-size: var(--font-size-lg);
+      color: var(--text-gold);
+    }
+    .score-badge span {
+      font-size: var(--font-size-xs);
+      color: var(--text-muted);
+      font-family: var(--font-body);
+    }
+
+    /* 发音维度评分 */
+    .pronunciation-scores {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: var(--space-2);
+      margin-top: var(--space-4);
+      padding-top: var(--space-4);
+      border-top: 1px solid var(--border-gold);
+    }
+    .pron-score-item {
+      text-align: center;
+    }
+    .pron-score-ring {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      margin: 0 auto var(--space-1);
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: conic-gradient(var(--qiang-gold) var(--score, 85%), rgba(232, 200, 114, 0.15) var(--score, 85%));
+    }
+    .pron-score-ring::before {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border-radius: 50%;
+      background: rgba(31, 15, 10, 0.9);
+    }
+    .pron-score-num {
+      position: relative;
+      z-index: 1;
+      font-size: var(--font-size-xs);
+      color: var(--text-gold);
+      font-family: var(--font-serif);
+      font-weight: 600;
+    }
+    .pron-score-label {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    /* 反馈卡片增强 */
+    .feedback-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .feedback-card::before {
+      content: '';
+      position: absolute;
+      top: -50px;
+      right: -50px;
+      width: 120px;
+      height: 120px;
+      background: radial-gradient(circle, rgba(232, 200, 114, 0.1) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .feedback-stars {
+      display: flex;
+      justify-content: center;
+      gap: 6px;
+      margin-bottom: var(--space-3);
+    }
+    .feedback-star {
+      width: 24px;
+      height: 24px;
+    }
+    .feedback-star.filled {
+      fill: var(--qiang-gold);
+      filter: drop-shadow(0 0 6px rgba(232, 200, 114, 0.5));
+    }
+    .feedback-star.empty {
+      fill: none;
+      stroke: var(--border-gold);
+      stroke-width: 1.5;
+      opacity: 0.5;
+    }
+
+    /* 成就提示 */
+    .achievement-toast {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 12px;
+      background: rgba(232, 200, 114, 0.15);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-full);
+      margin-top: var(--space-3);
+      font-size: var(--font-size-xs);
+      color: var(--text-gold);
+    }
+    .achievement-toast svg {
+      width: 14px;
+      height: 14px;
+      fill: var(--qiang-gold);
+    }
+
+    /* 声纹Canvas */
+    .waveform-canvas {
+      width: 100%;
+      height: 36px;
+      display: block;
+      border-radius: var(--radius-sm);
+      background: rgba(0, 0, 0, 0.2);
+    }
+
+    /* 挑战页风情图 */
+    .challenge-scenery {
+      position: relative;
+      margin: 0 var(--space-4);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      overflow: hidden;
+      border: 1px solid var(--border-gold-strong);
+      border-bottom: none;
+    }
+
+    /* 站点风情图标签：金色胶囊，不再压住照片题字 */
+    .station-scenery .scenery-overlay,
+    .challenge-scenery .scenery-overlay {
+      top: 12px;
+      bottom: auto;
+      left: 12px;
+      right: auto;
+      padding: 0;
+      background: none;
+    }
+    .station-scenery .scenery-label,
+    .challenge-scenery .scenery-label {
+      display: inline-block;
+      background: rgba(28, 13, 8, 0.72);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-full);
+      padding: 4px 11px;
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: var(--qiang-gold-light);
+      backdrop-filter: blur(6px);
+      text-shadow: none;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+    }
+
+    /* ===== 挑战页实拍风情图（替换手绘 SVG） ===== */
+    .challenge-scenery {
+      height: 130px;
+    }
+    .challenge-scenery .scenery-svg {
+      display: none;
+    }
+    .challenge-photo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 45%;
+      display: block;
+      opacity: 0;
+      transition: opacity .5s ease;
+    }
+    .challenge-photo.loaded {
+      opacity: 1;
+    }
+    @media (min-width: 900px) {
+      .challenge-scenery { height: 220px; }
+    }
+
+    .challenge-scenery .scenery-svg {
+      width: 100%;
+      height: 100px;
+      display: block;
+    }
+    .scenery-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: var(--space-3) var(--space-4);
+      background: linear-gradient(transparent, rgba(28, 13, 8, 0.85));
+    }
+    .scenery-label {
+      font-family: "ZCOOL XiaoWei", var(--font-heading);
+      color: var(--text-gold);
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+    .chal-overlay {
+      padding: var(--space-2) var(--space-3);
+    }
+    .chal-overlay .scenery-label {
+      font-size: 11px;
+      letter-spacing: 1.5px;
+    }
+  </style>
+</head>
+<body class="qiang-bg-pattern cloud-pattern">
+  <div class="app-container">
+    <!-- 页面头部 -->
+    <header class="page-header">
+      <h1 class="page-title">跟读挑战</h1>
+      <p class="page-subtitle">声音指纹相似度对比</p>
+    </header>
+
+    <!-- 站点风情图 -->
+    <div class="challenge-scenery" id="challengeScenery">
+      <img class="challenge-photo" id="challengePhoto" alt="站点实拍风情图">
+      <svg class="scenery-svg" viewBox="0 0 400 120" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="chalSky" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" style="stop-color:#2C1810"/>
+            <stop offset="100%" style="stop-color:#4A2C1E"/>
+          </linearGradient>
+        </defs>
+        <rect width="400" height="120" fill="url(#chalSky)"/>
+        <circle cx="350" cy="30" r="15" fill="#E8C872" opacity="0.25"/>
+        <path d="M0,70 L50,55 L100,65 L150,48 L200,60 L250,42 L300,55 L350,48 L400,62 L400,120 L0,120 Z" fill="#5A3725" opacity="0.4"/>
+        <path d="M0,95 L40,85 L80,92 L120,80 L160,88 L200,75 L240,85 L280,78 L320,88 L360,82 L400,90 L400,120 L0,120 Z" fill="#3D2318" opacity="0.7"/>
+        <!-- 场景1：茂县碉楼 -->
+        <g id="chal-scene-1">
+          <g transform="translate(170, 40)">
+            <rect x="15" y="15" width="18" height="45" fill="#3D2318" stroke="#E8C872" stroke-width="0.6" opacity="0.9"/>
+            <rect x="18" y="3" width="12" height="15" fill="#4A2C1E" stroke="#E8C872" stroke-width="0.6" opacity="0.9"/>
+            <polygon points="18,3 24,-5 30,3" fill="#C45A3C" opacity="0.7"/>
+            <rect x="0" y="28" width="14" height="32" fill="#3D2318" stroke="#E8C872" stroke-width="0.5" opacity="0.8"/>
+            <rect x="40" y="22" width="16" height="38" fill="#3D2318" stroke="#E8C872" stroke-width="0.5" opacity="0.8"/>
+            <rect x="-5" y="57" width="65" height="6" fill="#5A3725" stroke="#E8C872" stroke-width="0.4" opacity="0.6"/>
+          </g>
+          <g transform="translate(60, 90)" opacity="0.7">
+            <circle cx="7" cy="0" r="4" fill="#F5E6D3"/>
+            <path d="M2,4 L12,4 L15,18 L-1,18 Z" fill="#C45A3C"/>
+          </g>
+          <g transform="translate(320, 92)" opacity="0.6">
+            <circle cx="6" cy="0" r="3" fill="#F5E6D3"/>
+            <path d="M1,3 L11,3 L13,15 L-1,15 Z" fill="#D97560"/>
+          </g>
+        </g>
+        <!-- 场景2：甘堡藏寨 -->
+        <g id="chal-scene-2" style="display:none">
+          <g transform="translate(175, 35)">
+            <rect x="15" y="18" width="22" height="48" fill="#5A3725" stroke="#E8C872" stroke-width="0.6" opacity="0.9"/>
+            <rect x="18" y="6" width="16" height="14" fill="#6B4530" stroke="#E8C872" stroke-width="0.6"/>
+            <line x1="26" y1="6" x2="26" y2="-8" stroke="#E8C872" stroke-width="0.8"/>
+            <rect x="23" y="-8" width="2" height="6" fill="#C45A3C"/>
+            <rect x="27" y="-8" width="2" height="6" fill="#E8C872"/>
+            <rect x="-8" y="35" width="20" height="31" fill="#4A2C1E" stroke="#E8C872" stroke-width="0.4" opacity="0.8"/>
+            <rect x="42" y="30" width="22" height="36" fill="#4A2C1E" stroke="#E8C872" stroke-width="0.4" opacity="0.8"/>
+          </g>
+          <g transform="translate(30, 50)" opacity="0.6">
+            <line x1="8" y1="0" x2="8" y2="50" stroke="#E8C872" stroke-width="0.8"/>
+            <rect x="10" y="8" width="15" height="3" fill="#C45A3C" opacity="0.6"/>
+            <rect x="10" y="13" width="15" height="3" fill="#E8C872" opacity="0.5"/>
+            <rect x="10" y="18" width="15" height="3" fill="#6B8E5A" opacity="0.5"/>
+          </g>
+        </g>
+        <!-- 场景3：萝卜寨 -->
+        <g id="chal-scene-3" style="display:none">
+          <g transform="translate(120, 40)">
+            <rect x="55" y="0" width="18" height="22" fill="#C49A6C" stroke="#E8C872" stroke-width="0.4" opacity="0.9"/>
+            <polygon points="55,0 64,-8 73,0" fill="#A07850" stroke="#E8C872" stroke-width="0.4"/>
+            <rect x="30" y="22" width="22" height="28" fill="#B0885C" stroke="#E8C872" stroke-width="0.4" opacity="0.85"/>
+            <polygon points="30,22 41,12 52,22" fill="#907050" stroke="#E8C872" stroke-width="0.4"/>
+            <rect x="78" y="18" width="24" height="32" fill="#B0885C" stroke="#E8C872" stroke-width="0.4" opacity="0.85"/>
+            <polygon points="78,18 90,7 102,18" fill="#907050" stroke="#E8C872" stroke-width="0.4"/>
+            <rect x="5" y="50" width="25" height="30" fill="#A07850" stroke="#E8C872" stroke-width="0.4" opacity="0.8"/>
+            <rect x="35" y="50" width="24" height="30" fill="#A07850" stroke="#E8C872" stroke-width="0.4" opacity="0.8"/>
+            <rect x="65" y="50" width="22" height="30" fill="#A07850" stroke="#E8C872" stroke-width="0.4" opacity="0.8"/>
+            <rect x="92" y="50" width="26" height="30" fill="#A07850" stroke="#E8C872" stroke-width="0.4" opacity="0.8"/>
+          </g>
+          <ellipse cx="80" cy="15" rx="30" ry="8" fill="#E8C872" opacity="0.1"/>
+          <ellipse cx="320" cy="12" rx="35" ry="10" fill="#E8C872" opacity="0.08"/>
+        </g>
+        <!-- 场景4：博物馆 -->
+        <g id="chal-scene-4" style="display:none">
+          <g transform="translate(140, 40)">
+            <rect x="15" y="25" width="80" height="45" fill="#4A2C1E" stroke="#E8C872" stroke-width="0.6" opacity="0.9"/>
+            <polygon points="5,25 55,0 105,25" fill="#5A3725" stroke="#E8C872" stroke-width="0.6" opacity="0.9"/>
+            <rect x="45" y="42" width="20" height="28" fill="#2C1810" stroke="#E8C872" stroke-width="0.4"/>
+            <rect x="22" y="38" width="14" height="10" fill="#E8C872" opacity="0.15"/>
+            <rect x="74" y="38" width="14" height="10" fill="#E8C872" opacity="0.15"/>
+          </g>
+          <g transform="translate(50, 85)" opacity="0.6">
+            <ellipse cx="12" cy="15" rx="10" ry="3" fill="#3D2318"/>
+            <path d="M2,15 Q0,8 12,4 Q24,8 22,15" fill="#8B5A2B" stroke="#E8C872" stroke-width="0.4"/>
+          </g>
+        </g>
+        <!-- 场景5：曲谷乡 -->
+        <g id="chal-scene-5" style="display:none">
+          <path d="M0,30 L50,15 L80,40 L0,60 Z" fill="#1a0d08" opacity="0.5"/>
+          <path d="M400,28 L350,12 L320,38 L400,58 Z" fill="#1a0d08" opacity="0.5"/>
+          <g transform="translate(40, 60)" opacity="0.7">
+            <rect x="6" y="18" width="3" height="20" fill="#4A2C1E"/>
+            <polygon points="7.5,0 0,18 15,18" fill="#3D5A2D"/>
+          </g>
+          <g transform="translate(340, 62)" opacity="0.7">
+            <rect x="6" y="16" width="3" height="22" fill="#4A2C1E"/>
+            <polygon points="7.5,0 0,16 15,16" fill="#3D5A2D"/>
+          </g>
+          <g transform="translate(180, 65)" opacity="0.8">
+            <circle cx="12" cy="0" r="5" fill="#F5E6D3"/>
+            <path d="M5,-6 Q12,-14 19,-6 L18,-1 L6,-1 Z" fill="#8B5A2B"/>
+            <path d="M4,5 L20,5 L24,30 L0,30 Z" fill="#C45A3C"/>
+            <line x1="24" y1="-3" x2="28" y2="35" stroke="#E8C872" stroke-width="1"/>
+          </g>
+        </g>
+        <!-- 场景6：羌人谷 -->
+        <g id="chal-scene-6" style="display:none">
+          <path d="M0,25 L70,10 L100,35 L0,65 Z" fill="#1a0d08" opacity="0.6"/>
+          <path d="M400,22 L330,8 300,32 L400,60 Z" fill="#1a0d08" opacity="0.6"/>
+          <g transform="translate(180, 40)" opacity="0.85">
+            <rect x="15" y="35" width="22" height="22" fill="#4A2C1E" stroke="#E8C872" stroke-width="0.6"/>
+            <rect x="18" y="18" width="16" height="19" fill="#5A3725" stroke="#E8C872" stroke-width="0.6"/>
+            <polygon points="18,18 26,6 34,18" fill="#C45A3C" stroke="#E8C872" stroke-width="0.5"/>
+            <polygon points="26,1 21,8 31,8" fill="#F5E6D3" opacity="0.8"/>
+          </g>
+          <g transform="translate(85, 50)" opacity="0.7">
+            <rect x="10" y="28" width="5" height="30" fill="#4A2C1E"/>
+            <ellipse cx="12.5" cy="20" rx="16" ry="20" fill="#3D5A2D"/>
+          </g>
+          <g transform="translate(300, 52)" opacity="0.6">
+            <rect x="8" y="25" width="4" height="28" fill="#3D2318"/>
+            <ellipse cx="10" cy="18" rx="13" ry="16" fill="#3D5A2D" opacity="0.8"/>
+          </g>
+        </g>
+      </svg>
+      <div class="scenery-overlay chal-overlay">
+        <span class="scenery-label" id="chalSceneryLabel">茂县 · 中国古羌城</span>
+      </div>
+    </div>
+
+    <div class="content-area">
+      <!-- 关卡进度 -->
+      <div class="level-progress">
+        <div class="level-header">
+          <span class="level-title">茂县 · 第 1 关</span>
+          <span class="level-badge">进阶</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-bar-fill" style="width: 20%;"></div>
+        </div>
+        <div class="level-steps">
+          <div class="level-step current"></div>
+          <div class="level-step"></div>
+          <div class="level-step"></div>
+          <div class="level-step"></div>
+          <div class="level-step"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-top: var(--space-2);">
+          <span style="font-size: 10px; color: var(--text-muted);">第 1 / 5 词</span>
+          <span style="font-size: 10px; color: var(--qiang-gold);">rma 日麦</span>
+        </div>
+      </div>
+
+      <!-- 词条详情卡 -->
+      <section class="challenge-word-section">
+        <div class="word-detail-card qiang-card-gold">
+          <div class="qiang-four-corners"></div>
+          <div class="word-detail-header">
+            <div>
+              <div class="word-detail-pinyin">rma</div>
+              <div class="word-detail-phonetic">[ ʐma˧˥ ] · 高平调 · 你好</div>
+            </div>
+            <button class="play-btn play-btn-gold" onclick="speakQiang('rma')">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+            </button>
+          </div>
+          <div class="word-detail-hanzi">日麦</div>
+
+          <!-- 标准音播放 -->
+          <div class="standard-audio-row">
+            <button class="play-standard-btn" onclick="speakQiang('rma')">
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M8 5v14l11-7z"/>
+              </svg>
+              播放标准音
+            </button>
+            <div class="standard-audio-bar">
+              <div class="standard-audio-fill"></div>
+            </div>
+            <span class="standard-audio-time">1.2s</span>
+          </div>
+
+          <!-- 发音提示 -->
+          <div class="word-detail-usage" style="margin-top: var(--space-4);">
+            <div class="word-detail-usage-title">发音要点</div>
+            <div class="word-detail-usage-qiang">声母 ʐ + 韵母 a + 高平调 ˥</div>
+            <div class="word-detail-usage-cn">
+              卷舌近音 ʐ 类似普通话 r，但更轻；韵母 a 开口要大；
+              声调从3度升到5度，明显上扬
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 波形对比区域 -->
+      <section class="waveform-compare">
+        <div class="compare-header">
+          <span class="compare-title">声纹对比</span>
+          <div class="score-badge" id="scoreBadge">
+            --<span>分</span>
+          </div>
+        </div>
+
+        <!-- 用户声纹（实时Canvas） -->
+        <div class="waveform-row">
+          <span class="waveform-label gold">你的声音</span>
+          <canvas class="waveform-canvas" id="userWaveCanvas" width="200" height="40"></canvas>
+        </div>
+
+        <!-- 标准声纹（Canvas，预渲染） -->
+        <div class="waveform-row">
+          <span class="waveform-label red">标准声纹</span>
+          <canvas class="waveform-canvas" id="stdWaveCanvas" width="200" height="40"></canvas>
+        </div>
+      </section>
+
+        <!-- 发音维度评分 -->
+        <div class="pronunciation-scores">
+          <div class="pron-score-item">
+            <div class="pron-score-ring" style="--score: 0%;">
+              <span class="pron-score-num">--</span>
+            </div>
+            <span class="pron-score-label">声母</span>
+          </div>
+          <div class="pron-score-item">
+            <div class="pron-score-ring" style="--score: 0%;">
+              <span class="pron-score-num">--</span>
+            </div>
+            <span class="pron-score-label">韵母</span>
+          </div>
+          <div class="pron-score-item">
+            <div class="pron-score-ring" style="--score: 0%;">
+              <span class="pron-score-num">--</span>
+            </div>
+            <span class="pron-score-label">声调</span>
+          </div>
+          <div class="pron-score-item">
+            <div class="pron-score-ring" style="--score: 0%;">
+              <span class="pron-score-num">--</span>
+            </div>
+            <span class="pron-score-label">节奏</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 跟读按钮 -->
+      <section class="challenge-action">
+        <div class="challenge-action-title">按住跟读</div>
+        <div class="record-btn-container">
+          <button class="record-btn challenge-btn animate-pulse-gold" id="recordBtn">
+            <svg class="record-btn-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+              <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+            </svg>
+          </button>
+          <p class="record-btn-label">按住开始跟读</p>
+        </div>
+        <p class="hint-text challenge-hint">
+          先听标准发音，再按住按钮跟读<br>
+          <span class="hint-text-gold">系统将对比你的声纹与标准声纹</span>
+        </p>
+      </section>
+
+      <!-- 羌绣分隔线 -->
+      <div class="qiang-divider">
+        <svg class="qiang-divider-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2L14 10L22 12L14 14L12 22L10 14L2 12L10 10L12 2Z" stroke="#E8C872" stroke-width="1.5" stroke-linejoin="round"/>
+        </svg>
+      </div>
+
+      <!-- 反馈结果卡 -->
+      <section class="feedback-section">
+        <div class="feedback-card">
+          <!-- 星级评价 -->
+          <div class="feedback-stars">
+            <svg class="feedback-star filled" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            </svg>
+            <svg class="feedback-star filled" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            </svg>
+            <svg class="feedback-star filled" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            </svg>
+            <svg class="feedback-star filled" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            </svg>
+            <svg class="feedback-star empty" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            </svg>
+          </div>
+
+          <div class="feedback-score">
+            87<sup>分</sup>
+          </div>
+          <div class="feedback-title">发音地道！</div>
+          <p class="feedback-text">
+            你的羌语"日麦"发音非常标准，<br>
+            声纹相似度达到 87%，继续加油！
+          </p>
+
+          <!-- 成就提示 -->
+          <div class="achievement-toast">
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L14 10L22 12L14 14L12 22L10 14L2 12L10 10L12 2Z"/>
+            </svg>
+            解锁成就：羌语入门者
+          </div>
+
+          <div class="feedback-tips" style="margin-top: var(--space-4);">
+            <div class="feedback-tips-title">
+              <svg style="width:14px;height:14px;vertical-align:middle;margin-right:4px;fill:#E8C872;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/>
+              </svg>
+              发音建议
+            </div>
+            <p class="feedback-tips-text">
+              1. 声母"ʐ"（卷舌近音）可以再圆润一些，舌尖轻触上颚<br>
+              2. 韵母"a"的发音开口度可以再大一点<br>
+              3. 声调从33到55的上扬可以更明显
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <!-- 操作按钮 -->
+      <section style="padding: 0 var(--space-4) var(--space-6); display: flex; gap: var(--space-3);">
+        <button class="qiang-btn qiang-btn-outline" style="flex: 1;" id="retryBtn">
+          再试一次
+        </button>
+        <button class="qiang-btn qiang-btn-primary" style="flex: 1;" id="nextWordBtn">
+          下一词
+        </button>
+      </section>
+    </div>
+
+    <!-- 底部导航栏 -->
+    <nav class="bottom-nav">
+      <a href="passport.html" class="nav-item" data-dom-id="nav-passport" data-nav-key="passport">
+        <div class="nav-item-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
+          </svg>
+        </div>
+        <span class="nav-item-label">声纹护照</span>
+      </a>
+      <a href="challenge.html" class="nav-item active" data-dom-id="nav-challenge" data-nav-key="challenge">
+        <div class="nav-item-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+          </svg>
+        </div>
+        <span class="nav-item-label">跟读挑战</span>
+      </a>
+      <a href="map.html" class="nav-item" data-dom-id="nav-map" data-nav-key="map">
+        <div class="nav-item-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/>
+          </svg>
+        </div>
+        <span class="nav-item-label">寻声地图</span>
+      </a>
+      <a href="scenery.html" class="nav-item" data-dom-id="nav-scenery" data-nav-key="scenery">
+        <div class="nav-item-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14.5 17l-5-3.5V5c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v8.5l5 3.5v2H2v-2l12.5-8zM21 19v1H3v-1l9-6 9 6zM8.5 10H6v4h2.5v3H4V7h4.5v3z"/>
+          </svg>
+        </div>
+        <span class="nav-item-label">羌地风光</span>
+      </a>
+    </nav>
+  </div>
+
+  <script>
+    // 语音合成 - 使用英语TTS拼读国际音标近似音
+    const ipaToEnMap = {
+      'rma': 'rma',
+      'ʂpa': 'shpar',
+      'kʰə': 'kuh',
+      'tɕi': 'jee',
+      'mi': 'mee',
+      'ŋu': 'ngoo',
+      'bæ': 'bah',
+      'ʐu': 'roo',
+      'sə': 'suh',
+      'ŋa': 'ngah',
+      'tʂu': 'joo',
+      'le': 'leh'
+    };
+
+    function speakQiang(qiangText) {
+      if (!qiangText || !window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      const enText = ipaToEnMap[qiangText] || qiangText;
+      const utter = new SpeechSynthesisUtterance(enText);
+      utter.lang = 'en-US';
+      utter.rate = 0.7;
+      utter.pitch = 1.0;
+      utter.volume = 1.0;
+      const voices = window.speechSynthesis.getVoices();
+      const enVoice = voices.find(v => v.lang.startsWith('en'));
+      if (enVoice) utter.voice = enVoice;
+      window.speechSynthesis.speak(utter);
+    }
+
+    if (window.speechSynthesis) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
+
+    // 难度切换
+    document.querySelectorAll('.difficulty-btn').forEach(btn => {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.difficulty-btn').forEach(b => b.classList.remove('active'));
+        this.classList.add('active');
+      });
+    });
+
+    // ========== 真实录音 + 实时声纹 + 模拟打分 ==========
+    let audioContext = null;
+    let analyser = null;
+    let mediaRecorder = null;
+    let audioStream = null;
+    let isRecording = false;
+    let animationId = null;
+    let recordedDataArray = []; // 录音过程中收集的音量数据用于回放
+    let currentWordIndex = 0;
+
+    // 当前关卡词条（模拟5个词）
+    const challengeWords = [
+      { qiang: 'rma', ipa: 'ʐma˧˥', meaning: '你好', hanzi: '日麦' },
+      { qiang: 'kʰə', ipa: 'kʰə˧˥', meaning: '我', hanzi: '柯俄' },
+      { qiang: 'mi', ipa: 'mi˧˥', meaning: '人', hanzi: '米' },
+      { qiang: 'ŋu', ipa: 'ŋu˧˥', meaning: '水', hanzi: '俄吾' },
+      { qiang: 'tɕi', ipa: 'tɕi˧˥', meaning: '一', hanzi: '基' }
+    ];
+
+    // 初始化音频上下文
+    async function initAudio() {
+      if (audioContext) return true;
+      try {
+        audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 256;
+        const source = audioContext.createMediaStreamSource(audioStream);
+        source.connect(analyser);
+        return true;
+      } catch (e) {
+        alert('需要麦克风权限才能录音。请允许麦克风访问后重试。');
+        console.error('麦克风初始化失败:', e);
+        return false;
+      }
+    }
+
+    // 绘制标准声纹（静态，根据词生成不同波形）
+    function drawStandardWaveform(word) {
+      const canvas = document.getElementById('stdWaveCanvas');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      const mid = h / 2;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // 根据词生成伪随机但稳定的波形
+      let seed = 0;
+      for (let i = 0; i < word.length; i++) seed += word.charCodeAt(i);
+      function pseudoRandom(x) {
+        return Math.abs(Math.sin(x * seed * 0.1) * Math.cos(x * 0.07 + seed));
+      }
+
+      // 绘制上下对称波形
+      const gradient = ctx.createLinearGradient(0, 0, w, 0);
+      gradient.addColorStop(0, 'rgba(196, 90, 60, 0.3)');
+      gradient.addColorStop(0.5, 'rgba(217, 117, 96, 0.9)');
+      gradient.addColorStop(1, 'rgba(196, 90, 60, 0.3)');
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+
+      // 上半
+      ctx.beginPath();
+      for (let x = 0; x < w; x++) {
+        const amp = pseudoRandom(x) * (mid - 4) * (0.3 + 0.7 * Math.exp(-Math.pow((x - w/2) / (w/3), 2)));
+        const y = mid - amp;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // 下半（镜像）
+      ctx.beginPath();
+      for (let x = 0; x < w; x++) {
+        const amp = pseudoRandom(x + 17) * (mid - 4) * (0.3 + 0.7 * Math.exp(-Math.pow((x - w/2) / (w/3), 2)));
+        const y = mid + amp;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    // 实时绘制用户声纹
+    function drawUserWaveform() {
+      const canvas = document.getElementById('userWaveCanvas');
+      if (!canvas || !analyser) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      const mid = h / 2;
+      const bufferLength = analyser.frequencyBinCount;
+      const dataArray = new Uint8Array(bufferLength);
+
+      function draw() {
+        animationId = requestAnimationFrame(draw);
+        analyser.getByteTimeDomainData(dataArray);
+
+        ctx.clearRect(0, 0, w, h);
+
+        const gradient = ctx.createLinearGradient(0, 0, w, 0);
+        gradient.addColorStop(0, 'rgba(232, 200, 114, 0.3)');
+        gradient.addColorStop(0.5, 'rgba(232, 200, 114, 0.9)');
+        gradient.addColorStop(1, 'rgba(232, 200, 114, 0.3)');
+        ctx.strokeStyle = gradient;
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+
+        // 上半波形
+        ctx.beginPath();
+        const sliceWidth = w / bufferLength;
+        let x = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          const v = dataArray[i] / 128.0 - 1; // -1 ~ 1
+          const y = mid - Math.abs(v) * (mid - 2);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+          x += sliceWidth;
+        }
+        ctx.stroke();
+
+        // 下半波形（反向）
+        ctx.beginPath();
+        x = 0;
+        for (let i = 0; i < bufferLength; i++) {
+          const v = dataArray[(i + bufferLength/2) % bufferLength] / 128.0 - 1;
+          const y = mid + Math.abs(v) * (mid - 2);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+          x += sliceWidth;
+        }
+        ctx.stroke();
+
+        // 如果正在录音，记录音量数据
+        if (isRecording) {
+          let sum = 0;
+          for (let i = 0; i < bufferLength; i++) {
+            const v = Math.abs(dataArray[i] - 128);
+            sum += v;
+          }
+          recordedDataArray.push(sum / bufferLength);
+        }
+      }
+      draw();
+    }
+
+    // 停止实时波形动画
+    function stopUserWaveform() {
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
+      }
+    }
+
+    // 回放录音波形（静态展示录音结果）
+    function drawRecordedWaveform() {
+      const canvas = document.getElementById('userWaveCanvas');
+      if (!canvas || recordedDataArray.length === 0) return;
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width;
+      const h = canvas.height;
+      const mid = h / 2;
+
+      ctx.clearRect(0, 0, w, h);
+
+      const gradient = ctx.createLinearGradient(0, 0, w, 0);
+      gradient.addColorStop(0, 'rgba(232, 200, 114, 0.3)');
+      gradient.addColorStop(0.5, 'rgba(232, 200, 114, 0.9)');
+      gradient.addColorStop(1, 'rgba(232, 200, 114, 0.3)');
+      ctx.strokeStyle = gradient;
+      ctx.lineWidth = 2;
+      ctx.lineCap = 'round';
+
+      const dataLen = recordedDataArray.length;
+      const step = Math.max(1, Math.floor(dataLen / w));
+
+      // 上半
+      ctx.beginPath();
+      for (let x = 0; x < w; x++) {
+        const idx = Math.min(x * step, dataLen - 1);
+        const amp = (recordedDataArray[idx] / 128) * (mid - 2);
+        const y = mid - amp;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // 下半
+      ctx.beginPath();
+      for (let x = 0; x < w; x++) {
+        const idx = Math.min((x + w/2) * step % dataLen, dataLen - 1);
+        const amp = (recordedDataArray[idx] / 128) * (mid - 2);
+        const y = mid + amp;
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    // 计算发音评分（基于真实音频特征）
+    function calculateScore() {
+      if (recordedDataArray.length < 15) return 0;
+
+      const dataLen = recordedDataArray.length;
+      let sum = 0, maxVol = 0, minVol = 255;
+      let aboveThreshold = 0; // 超过阈值的帧数（有效发音时长）
+      const threshold = 15; // 有效音量阈值
+
+      for (let v of recordedDataArray) {
+        sum += v;
+        if (v > maxVol) maxVol = v;
+        if (v < minVol) minVol = v;
+        if (v > threshold) aboveThreshold++;
+      }
+      const avgVol = sum / dataLen;
+      const duration = dataLen / 60; // 约等于秒数
+      const effectiveRatio = aboveThreshold / dataLen; // 有效发音占比
+
+      // 1. 音量饱满度（最大音量）——声音太小扣分
+      const volumeScore = Math.min(100, (maxVol / 50) * 100);
+
+      // 2. 时长合理度（1-2秒最佳，过短过长都扣分）
+      let durationScore;
+      if (duration < 0.3) durationScore = 30;
+      else if (duration < 0.8) durationScore = 60 + (duration - 0.3) / 0.5 * 30;
+      else if (duration <= 2) durationScore = 90 + (2 - Math.abs(duration - 1.2)) * 10;
+      else if (duration <= 3.5) durationScore = 90 - (duration - 2) * 10;
+      else durationScore = Math.max(40, 75 - (duration - 3.5) * 15);
+
+      // 3. 发音有效率（有效帧占比）——全是杂音或全静音都扣分
+      let effectivenessScore;
+      if (effectiveRatio < 0.2) effectivenessScore = 40 + effectiveRatio * 100;
+      else if (effectiveRatio < 0.5) effectivenessScore = 60 + (effectiveRatio - 0.2) / 0.3 * 25;
+      else if (effectiveRatio < 0.85) effectivenessScore = 85 + (effectiveRatio - 0.5) / 0.35 * 10;
+      else effectivenessScore = 95 - (effectiveRatio - 0.85) * 100; // 全是杂音也扣分
+
+      // 4. 音量稳定性（方差越小越稳定，但太稳定也不自然）
+      let variance = 0;
+      for (let v of recordedDataArray) {
+        variance += (v - avgVol) * (v - avgVol);
+      }
+      variance /= dataLen;
+      const stdDev = Math.sqrt(variance);
+      // 理想标准差在 10-25 之间
+      let stabilityScore;
+      if (stdDev < 5) stabilityScore = 60 + stdDev * 4;
+      else if (stdDev < 15) stabilityScore = 80 + (stdDev - 5) / 10 * 15;
+      else if (stdDev < 30) stabilityScore = 95 - (stdDev - 15) / 15 * 20;
+      else stabilityScore = Math.max(50, 75 - (stdDev - 30));
+
+      // 5. 能量分布均匀度（前后段音量对比，发音应有起承转合）
+      const firstThird = recordedDataArray.slice(0, Math.floor(dataLen / 3));
+      const lastThird = recordedDataArray.slice(Math.floor(dataLen * 2 / 3));
+      const firstAvg = firstThird.reduce((a, b) => a + b, 0) / firstThird.length;
+      const lastAvg = lastThird.reduce((a, b) => a + b, 0) / lastThird.length;
+      // 理想的是中间高前后低
+      const midStart = Math.floor(dataLen * 0.3);
+      const midEnd = Math.floor(dataLen * 0.7);
+      const midAvg = recordedDataArray.slice(midStart, midEnd).reduce((a, b) => a + b, 0) / (midEnd - midStart);
+      const envelopeScore = midAvg > firstAvg + 5 && midAvg > lastAvg + 5 ? 90 : 70;
+
+      // 综合评分（加权）
+      const baseScore = (
+        volumeScore * 0.2 +
+        durationScore * 0.2 +
+        effectivenessScore * 0.25 +
+        stabilityScore * 0.2 +
+        envelopeScore * 0.15
+      );
+
+      // 轻微随机波动（±3%），模拟真实评分系统的微小误差
+      const jitter = (Math.random() - 0.5) * 6;
+      const finalScore = Math.min(99, Math.max(35, Math.round(baseScore + jitter)));
+
+      return finalScore;
+    }
+
+    // 更新分数显示（带动画）
+    function updateScore(targetScore) {
+      const badge = document.getElementById('scoreBadge');
+      if (!badge) return;
+
+      // 数字滚动动画
+      const startScore = 0;
+      const duration = 1200;
+      const startTime = performance.now();
+
+      function animate(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        // easeOutQuart 缓动
+        const eased = 1 - Math.pow(1 - progress, 4);
+        const currentScore = Math.round(startScore + (targetScore - startScore) * eased);
+        badge.innerHTML = currentScore + '<span>分</span>';
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      }
+      requestAnimationFrame(animate);
+
+      // 更新维度评分（带渐进显示）
+      const initials = Math.max(30, Math.round(targetScore * (0.88 + Math.random() * 0.18)));
+      const finals = Math.max(30, Math.round(targetScore * (0.85 + Math.random() * 0.22)));
+      const tones = Math.max(30, Math.round(targetScore * (0.82 + Math.random() * 0.25)));
+      const rhythms = Math.max(30, Math.round(targetScore * (0.86 + Math.random() * 0.2)));
+      const scores = [initials, finals, tones, rhythms];
+
+      const scoreNums = document.querySelectorAll('.pron-score-num');
+      const rings = document.querySelectorAll('.pron-score-ring');
+      if (scoreNums.length >= 4 && rings.length >= 4) {
+        for (let i = 0; i < 4; i++) {
+          // 每个维度依次延迟出现
+          setTimeout(() => {
+            animateScoreItem(scoreNums[i], rings[i], scores[i], 800);
+          }, 300 + i * 200);
+        }
+      }
+    }
+
+    function animateScoreItem(numEl, ringEl, targetValue, duration) {
+      const startTime = performance.now();
+      function animate(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        const val = Math.round(targetValue * eased);
+        numEl.textContent = val;
+        ringEl.style.setProperty('--score', val + '%');
+        if (progress < 1) requestAnimationFrame(animate);
+      }
+      requestAnimationFrame(animate);
+    }
+
+    // 录音按钮逻辑
+    const recordBtn = document.getElementById('recordBtn');
+    const recordLabel = document.querySelector('.record-btn-label');
+
+    async function startRecording() {
+      const ok = await initAudio();
+      if (!ok) return;
+
+      // 恢复音频上下文（iOS需要）
+      if (audioContext.state === 'suspended') {
+        await audioContext.resume();
+      }
+
+      recordedDataArray = [];
+      isRecording = true;
+      recordBtn.classList.add('recording');
+      recordBtn.classList.remove('animate-pulse-gold');
+      if (recordLabel) recordLabel.textContent = '松开结束录音';
+
+      // 开始实时波形
+      drawUserWaveform();
+    }
+
+    // ===== 进度存档：评分后解锁下一站 =====
+    function saveStationResult(score) {
+      const sid = parseInt(new URLSearchParams(window.location.search).get('station')) || 1;
+      const key = 'shengwen-passport-progress-v1';
+      let data = { unlocked: [1], done: [], scores: {} };
+      try {
+        const raw = localStorage.getItem(key);
+        if (raw) {
+          const parsed = JSON.parse(raw);
+          if (parsed && Array.isArray(parsed.unlocked) && parsed.unlocked.length) data = parsed;
+        }
+      } catch (err) {}
+      if (!Array.isArray(data.done)) data.done = [];
+      if (!data.scores || typeof data.scores !== 'object') data.scores = {};
+      if (data.unlocked.indexOf(sid) < 0) data.unlocked.push(sid);
+      data.scores[sid] = Math.max(data.scores[sid] || 0, score);
+      let unlockedNext = false;
+      if (score >= 75) {
+        if (data.done.indexOf(sid) < 0) data.done.push(sid);
+        const nextId = sid + 1;
+        if (nextId <= 6 && data.unlocked.indexOf(nextId) < 0) {
+          data.unlocked.push(nextId);
+          unlockedNext = true;
+        }
+      }
+      try { localStorage.setItem(key, JSON.stringify(data)); } catch (err) {}
+      return unlockedNext;
+    }
+
+    function stopRecording() {
+      if (!isRecording) return;
+      isRecording = false;
+      recordBtn.classList.remove('recording');
+      recordBtn.classList.add('animate-pulse-gold');
+      if (recordLabel) recordLabel.textContent = '按住开始跟读';
+
+      // 停止实时波形，绘制静态录音结果
+      stopUserWaveform();
+      drawRecordedWaveform();
+
+      // 计算并显示分数
+      const score = calculateScore();
+      updateScore(score);
+
+      // 保存进度并解锁下一站
+      const unlockedNext = saveStationResult(score);
+
+      // 显示成就提示（得分>80时）
+      if (score >= 80) {
+        showAchievement('发音标准！相似度 ' + score + '%' + (unlockedNext ? ' · 已解锁下一站' : ''));
+      }
+    }
+
+    if (recordBtn) {
+      // 支持鼠标
+      recordBtn.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        startRecording();
+      });
+      recordBtn.addEventListener('mouseup', function(e) {
+        e.preventDefault();
+        stopRecording();
+      });
+      recordBtn.addEventListener('mouseleave', function() {
+        if (isRecording) stopRecording();
+      });
+
+      // 支持触摸
+      recordBtn.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        startRecording();
+      });
+      recordBtn.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        stopRecording();
+      });
+    }
+
+    // 再试一次按钮
+    const retryBtn = document.getElementById('retryBtn');
+    if (retryBtn) {
+      retryBtn.addEventListener('click', function() {
+        // 重置分数
+        const badge = document.getElementById('scoreBadge');
+        if (badge) badge.innerHTML = '--<span>分</span>';
+
+        // 重置维度评分
+        const scoreNums = document.querySelectorAll('.pron-score-num');
+        if (scoreNums.length >= 4) {
+          scoreNums.forEach(el => el.textContent = '--');
+        }
+        const rings = document.querySelectorAll('.pron-score-ring');
+        if (rings.length >= 4) {
+          rings.forEach(el => el.style.setProperty('--score', '0%'));
+        }
+
+        // 清空用户波形
+        const canvas = document.getElementById('userWaveCanvas');
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        recordedDataArray = [];
+      });
+    }
+
+    // 下一词按钮
+    const nextWordBtn = document.getElementById('nextWordBtn');
+    if (nextWordBtn) {
+      nextWordBtn.addEventListener('click', function() {
+        currentWordIndex = (currentWordIndex + 1) % challengeWords.length;
+        const word = challengeWords[currentWordIndex];
+
+        // 切换动画：先淡出
+        const wordCard = document.querySelector('.word-detail-card');
+        if (wordCard) {
+          wordCard.style.opacity = '0.3';
+          wordCard.style.transform = 'translateX(20px)';
+          wordCard.style.transition = 'all 0.2s ease';
+          setTimeout(() => {
+            // 更新词条显示
+            const pinyinEl = document.querySelector('.word-detail-pinyin');
+            const phoneticEl = document.querySelector('.word-detail-phonetic');
+            if (pinyinEl) pinyinEl.textContent = word.qiang;
+            if (phoneticEl) phoneticEl.textContent = '[ ' + word.ipa + ' ] · 高平调 · ' + word.meaning;
+
+            const hanziEl = document.querySelector('.word-detail-hanzi');
+            if (hanziEl) hanziEl.textContent = word.hanzi;
+
+            // 重绘标准声纹
+            drawStandardWaveform(word.qiang);
+
+            // 淡入
+            wordCard.style.opacity = '1';
+            wordCard.style.transform = 'translateX(0)';
+          }, 200);
+        } else {
+          // 兜底：直接更新
+          const pinyinEl = document.querySelector('.word-detail-pinyin');
+          const phoneticEl = document.querySelector('.word-detail-phonetic');
+          if (pinyinEl) pinyinEl.textContent = word.qiang;
+          if (phoneticEl) phoneticEl.textContent = '[ ' + word.ipa + ' ] · 高平调 · ' + word.meaning;
+          drawStandardWaveform(word.qiang);
+        }
+
+        // 更新步骤指示
+        const steps = document.querySelectorAll('.level-step');
+        steps.forEach((s, i) => {
+          s.classList.remove('done', 'current');
+          if (i < currentWordIndex) s.classList.add('done');
+          else if (i === currentWordIndex) s.classList.add('current');
+        });
+
+        // 更新进度条
+        const progressFill = document.querySelector('.progress-bar-fill');
+        if (progressFill) {
+          progressFill.style.width = ((currentWordIndex + 1) / challengeWords.length * 100) + '%';
+        }
+
+        // 更新词计数
+        const stepText = document.querySelector('.level-steps + div span:first-child');
+        if (stepText) stepText.textContent = '第 ' + (currentWordIndex + 1) + ' / ' + challengeWords.length + ' 词';
+
+        // 更新小标签
+        const rmaLabel = document.querySelector('.level-steps + div span:last-child');
+        if (rmaLabel) rmaLabel.textContent = word.qiang + ' ' + word.hanzi;
+
+        // 清空用户波形和分数
+        const canvas = document.getElementById('userWaveCanvas');
+        if (canvas) {
+          const ctx = canvas.getContext('2d');
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+        const badge = document.getElementById('scoreBadge');
+        if (badge) badge.innerHTML = '--<span>分</span>';
+
+        const scoreNums = document.querySelectorAll('.pron-score-num');
+        if (scoreNums.length >= 4) {
+          scoreNums.forEach(el => el.textContent = '--');
+        }
+        const rings = document.querySelectorAll('.pron-score-ring');
+        if (rings.length >= 4) {
+          rings.forEach(el => el.style.setProperty('--score', '0%'));
+        }
+
+        recordedDataArray = [];
+      });
+    }
+
+    // 成就提示
+    function showAchievement(text) {
+      let toast = document.querySelector('.achievement-toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.className = 'achievement-toast';
+        document.body.appendChild(toast);
+      }
+      toast.innerHTML = '<svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg> ' + text;
+      toast.style.display = 'block';
+      toast.style.animation = 'none';
+      toast.offsetHeight;
+      toast.style.animation = '';
+      setTimeout(() => {
+        toast.style.display = 'none';
+      }, 2500);
+    }
+
+    // 站点数据
+    const stationData = {
+      1: { name: '茂县', scenery: '茂县 · 中国古羌城' },
+      2: { name: '甘堡藏寨', scenery: '甘堡藏寨 · 博巴森根' },
+      3: { name: '萝卜寨', scenery: '萝卜寨 · 云朵街市' },
+      4: { name: '羌族博物馆', scenery: '羌族博物馆 · 羌文化宝库' },
+      5: { name: '曲谷乡', scenery: '曲谷乡 · 释比圣地' },
+      6: { name: '羌人谷', scenery: '羌人谷 · 羌人之源' }
+    };
+
+    // 站点实拍风情图
+    const challengePhotos = {
+      1: '../assets/scenery-maoxian.jpg',
+      2: '../assets/scenery-ganbao.jpg',
+      3: '../assets/scenery-luobu.jpg',
+      4: '../assets/scenery-museum.jpg',
+      5: '../assets/scenery-qugu.jpg',
+      6: '../assets/scenery-qiangren.jpg'
+    };
+
+    // 初始化：根据URL参数设置站点
+    function initChallengePage() {
+      const params = new URLSearchParams(window.location.search);
+      const stationId = parseInt(params.get('station')) || 1;
+      const station = stationData[stationId] || stationData[1];
+
+      // 更新风情图标签
+      const labelEl = document.getElementById('chalSceneryLabel');
+      if (labelEl) labelEl.textContent = station.scenery;
+
+      // 站点实拍风情图
+      const photoEl = document.getElementById('challengePhoto');
+      if (photoEl) {
+        const photoSrc = challengePhotos[stationId] || challengePhotos[1];
+        photoEl.onload = function () { photoEl.classList.add('loaded'); };
+        photoEl.src = photoSrc;
+      }
+
+      // 切换场景
+      for (let i = 1; i <= 6; i++) {
+        const scene = document.getElementById('chal-scene-' + i);
+        if (scene) scene.style.display = (i === stationId) ? '' : 'none';
+      }
+
+      // 更新关卡标题
+      const levelTitle = document.querySelector('.level-title');
+      if (levelTitle) {
+        levelTitle.textContent = station.name + ' · 第 1 关';
+      }
+
+      // 绘制初始标准声纹
+      drawStandardWaveform(challengeWords[0].qiang);
+    }
+
+    document.addEventListener('DOMContentLoaded', initChallengePage);
+  </script>
+</body>
+</html>
+

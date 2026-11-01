@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>羌地风光 - 声纹护照</title>
+  <link rel="stylesheet" href="../colors_and_type.css">
+  <style>
+    /* ===== 头图 ===== */
+    .scenery-hero {
+      position: relative;
+      height: 260px;
+      overflow: hidden;
+      background: #1F0F0A;
+    }
+    .scenery-hero img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 45%;
+      filter: brightness(0.82) saturate(1.05);
+      transform: scale(1.02);
+      animation: heroZoom 28s ease-in-out infinite alternate;
+    }
+    @keyframes heroZoom {
+      from { transform: scale(1.02) translateY(0); }
+      to   { transform: scale(1.11) translateY(-6px); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .scenery-hero img { animation: none; }
+    }
+    .scenery-hero-overlay {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(transparent 35%, rgba(28, 13, 8, 0.92) 100%),
+        linear-gradient(90deg, rgba(28, 13, 8, 0.55) 0%, transparent 55%);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: var(--space-6) var(--space-5);
+    }
+    .scenery-hero-title {
+      font-family: "ZCOOL XiaoWei", var(--font-heading);
+      font-size: 30px;
+      color: var(--text-gold);
+      letter-spacing: 6px;
+      margin-bottom: var(--space-2);
+      text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6);
+    }
+    .scenery-hero-subtitle {
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+      letter-spacing: 2px;
+    }
+    .hero-badge {
+      position: absolute;
+      top: var(--space-4);
+      right: var(--space-4);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 5px 12px;
+      border-radius: var(--radius-full);
+      background: rgba(28, 13, 8, 0.62);
+      border: 1px solid var(--border-gold-strong);
+      color: var(--qiang-gold-light);
+      font-size: var(--font-size-xs);
+      letter-spacing: 1px;
+      backdrop-filter: blur(6px);
+    }
+    .hero-badge .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--qiang-red-light);
+      box-shadow: 0 0 8px var(--qiang-red-light);
+    }
+
+    /* ===== 说明条 ===== */
+    .scenery-note {
+      padding: var(--space-3) var(--space-5) 0;
+      font-size: var(--font-size-xs);
+      color: var(--text-muted);
+      line-height: 1.8;
+      letter-spacing: 0.5px;
+    }
+    .scenery-note strong {
+      color: var(--qiang-gold);
+      font-weight: normal;
+    }
+
+    /* ===== 卡片列表 ===== */
+    .scenery-list {
+      padding: var(--space-4);
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-4);
+    }
+    .scenery-card {
+      background: var(--surface-card, var(--bg-card));
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+      transition: transform 0.35s ease, box-shadow 0.35s ease, border-color 0.35s ease;
+      cursor: pointer;
+    }
+    .scenery-card:active {
+      transform: scale(0.985);
+    }
+    .scenery-card-media {
+      position: relative;
+      overflow: hidden;
+      aspect-ratio: 16 / 10;
+      background: linear-gradient(135deg, #3D2318, #2C1810);
+    }
+    .scenery-card-media img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+      opacity: 0;
+      transition: opacity 0.6s ease, transform 0.7s ease;
+    }
+    .scenery-card-media img.loaded {
+      opacity: 1;
+    }
+    .scenery-card-photo-tag {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 3px 9px;
+      border-radius: var(--radius-full);
+      background: rgba(28, 13, 8, 0.6);
+      border: 1px solid rgba(232, 200, 114, 0.4);
+      color: var(--qiang-gold-light);
+      font-size: 10px;
+      letter-spacing: 1px;
+      backdrop-filter: blur(4px);
+    }
+    .scenery-card-photo-tag .dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--qiang-red-light);
+    }
+    .scenery-card-credit {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      max-width: 78%;
+      padding: 4px 10px;
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.78);
+      letter-spacing: 0.5px;
+      background: linear-gradient(90deg, transparent, rgba(0, 0, 0, 0.62));
+      text-align: right;
+    }
+    .scenery-card-body {
+      padding: var(--space-4);
+    }
+    .scenery-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: var(--space-2);
+      margin-bottom: var(--space-2);
+    }
+    .scenery-card-title {
+      font-family: "ZCOOL XiaoWei", var(--font-heading);
+      font-size: var(--font-size-lg);
+      color: var(--text-gold);
+      letter-spacing: 2px;
+    }
+    .scenery-card-location {
+      font-size: var(--font-size-xs);
+      color: var(--text-muted);
+      margin-top: 4px;
+      letter-spacing: 1px;
+    }
+    .scenery-card-badge {
+      flex: none;
+      background: rgba(196, 90, 60, 0.15);
+      color: var(--qiang-red-light);
+      font-size: 10px;
+      padding: 2px 8px;
+      border-radius: var(--radius-full);
+      border: 1px solid rgba(196, 90, 60, 0.3);
+      letter-spacing: 1px;
+      white-space: nowrap;
+    }
+    .scenery-card-desc {
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+      line-height: 1.75;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .scenery-card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: var(--space-3);
+      padding-top: var(--space-3);
+      border-top: 1px solid var(--border-gold-light, var(--border-gold));
+    }
+    .scenery-card-words {
+      font-size: var(--font-size-xs);
+      color: var(--text-muted);
+    }
+    .scenery-card-words strong {
+      color: var(--text-gold);
+      font-weight: normal;
+    }
+    .scenery-card-link {
+      font-size: var(--font-size-xs);
+      color: var(--qiang-gold);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      letter-spacing: 1px;
+    }
+    .scenery-card-link svg {
+      width: 12px;
+      height: 12px;
+      fill: var(--qiang-gold);
+      transition: transform 0.3s ease;
+    }
+
+    /* ===== 详情弹窗 ===== */
+    .scenery-modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.9);
+      z-index: 1000;
+      display: none;
+      flex-direction: column;
+      overflow-y: auto;
+      overscroll-behavior: contain;
+    }
+    .scenery-modal.active {
+      display: flex;
+      animation: modalIn 0.28s ease;
+    }
+    @keyframes modalIn {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .scenery-modal-close {
+      position: fixed;
+      top: var(--space-4);
+      right: var(--space-4);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(28, 13, 8, 0.82);
+      border: 1px solid var(--border-gold);
+      color: var(--text-gold);
+      font-size: 22px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 20;
+      cursor: pointer;
+    }
+    .scenery-modal-figure {
+      position: relative;
+      margin: 0;
+      background: #1F0F0A;
+    }
+    .scenery-modal-image {
+      width: 100%;
+      max-height: 52vh;
+      object-fit: cover;
+      display: block;
+      touch-action: pan-y;
+    }
+    .scenery-modal-caption {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      padding: 26px var(--space-5) 12px;
+      font-size: var(--font-size-xs);
+      color: rgba(255, 255, 255, 0.82);
+      background: linear-gradient(transparent, rgba(0, 0, 0, 0.7));
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: var(--space-3);
+    }
+    .scenery-modal-caption .cap-left {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      letter-spacing: 1px;
+      line-height: 1.5;
+    }
+    .scenery-modal-caption .dot {
+      flex: none;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--qiang-red-light);
+      box-shadow: 0 0 8px var(--qiang-red-light);
+    }
+    .scenery-modal-nav {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: none;
+    }
+    .scenery-modal-nav button {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      border: 1px solid var(--border-gold-strong);
+      background: rgba(20, 9, 5, 0.92);
+      color: var(--text-gold);
+      font-size: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      padding: 0;
+    }
+    .scenery-modal-nav button:disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+    .scenery-modal-counter {
+      font-size: 10px;
+      color: var(--text-muted);
+      min-width: 34px;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+    .scenery-modal-content {
+      flex: 0 0 auto;
+      padding: var(--space-5) var(--space-5) var(--space-7);
+      background: #24120C;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      margin-top: -18px;
+      position: relative;
+      border: 1px solid var(--border-gold);
+      border-bottom: none;
+      box-shadow: 0 18px 50px rgba(0, 0, 0, 0.55);
+    }
+    .scenery-modal-title {
+      font-family: "ZCOOL XiaoWei", var(--font-heading);
+      font-size: 24px;
+      color: var(--text-gold);
+      letter-spacing: 3px;
+      margin-bottom: var(--space-2);
+    }
+    .scenery-modal-location {
+      font-size: var(--font-size-sm);
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      margin-bottom: var(--space-4);
+    }
+    .scenery-modal-section {
+      margin-bottom: var(--space-4);
+    }
+    .scenery-modal-section h3 {
+      font-size: var(--font-size-base);
+      color: var(--text-gold);
+      margin-bottom: var(--space-2);
+      letter-spacing: 2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .scenery-modal-section h3::before {
+      content: '';
+      display: inline-block;
+      width: 3px;
+      height: 14px;
+      background: var(--qiang-gold);
+      border-radius: 2px;
+    }
+    .scenery-modal-section p {
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+      line-height: 1.9;
+    }
+    .scenery-modal-words {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      margin-top: var(--space-2);
+    }
+    .scenery-modal-word-tag {
+      background: rgba(232, 200, 114, 0.1);
+      border: 1px solid var(--border-gold-light, var(--border-gold));
+      border-radius: var(--radius-sm);
+      padding: 5px 10px;
+      font-size: var(--font-size-xs);
+      color: var(--text-gold);
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .scenery-modal-word-tag:active {
+      background: rgba(232, 200, 114, 0.22);
+    }
+    .scenery-modal-source {
+      margin-top: var(--space-2);
+      padding-top: var(--space-3);
+      border-top: 1px solid var(--border-gold-light, var(--border-gold));
+      font-size: 10px;
+      color: var(--text-muted);
+      line-height: 1.7;
+      letter-spacing: 0.5px;
+    }
+
+    /* ===== 桌面端 ===== */
+    @media (min-width: 900px) {
+      .scenery-hero {
+        height: 380px;
+      }
+      .scenery-hero-title {
+        font-size: 40px;
+        letter-spacing: 10px;
+      }
+      .scenery-hero-overlay {
+        padding: 40px var(--space-6);
+      }
+      .scenery-note {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: var(--space-4) var(--space-6) 0;
+      }
+      .scenery-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: var(--space-5);
+        padding: var(--space-5) var(--space-6);
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+      .scenery-card:hover {
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+        border-color: var(--border-gold-strong);
+      }
+      .scenery-card:hover .scenery-card-media img {
+        transform: scale(1.06);
+      }
+      .scenery-card:hover .scenery-card-link svg {
+        transform: translateX(3px);
+      }
+      .scenery-modal {
+        align-items: center;
+        justify-content: center;
+        padding: 32px;
+      }
+      .scenery-modal-figure,
+      .scenery-modal-content {
+        width: min(860px, 92vw);
+      }
+      .scenery-modal-figure {
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+        margin-top: 32px;
+      }
+      .scenery-modal-image {
+        max-height: 46vh;
+        border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      }
+      .scenery-modal-content {
+        margin-top: 0;
+        margin-bottom: 32px;
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+        border-bottom: 1px solid var(--border-gold);
+        max-height: 58vh;
+        overflow-y: auto;
+      }
+      .scenery-modal-close {
+        top: 24px;
+        right: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-container">
+
+    <!-- 头图（实拍） -->
+    <div class="scenery-hero">
+      <img src="../assets/scenery-hero.jpg" alt="中国古羌城夕阳下的碉楼群">
+      <div class="scenery-hero-overlay">
+        <div class="scenery-hero-title">羌地风光</div>
+        <div class="scenery-hero-subtitle">岷山深处 · 云朵上的民族</div>
+      </div>
+      <div class="hero-badge"><span class="dot"></span>6 处 · 当地实拍</div>
+    </div>
+
+    <p class="scenery-note">本页照片均为 <strong>羌区当地实拍</strong>，取自公开报道与摄影社区，非 AI 生成；点击卡片可看大图、读简介、听当地羌语发音。</p>
+
+    <!-- 风光卡片列表 -->
+    <div class="scenery-list" id="sceneryList">
+
+      <!-- 茂县 -->
+      <div class="scenery-card" onclick="openScenery(1)">
+        <div class="scenery-card-media">
+          <img loading="lazy" src="../assets/scenery-maoxian.jpg" alt="茂县中国古羌城实拍">
+          <span class="scenery-card-photo-tag"><span class="dot"></span>实拍</span>
+          <span class="scenery-card-credit">中国古羌城 · 羌碉群</span>
+        </div>
+        <div class="scenery-card-body">
+          <div class="scenery-card-header">
+            <div>
+              <div class="scenery-card-title">茂县古羌城</div>
+              <div class="scenery-card-location">阿坝州 · 茂县 · 凤仪镇</div>
+            </div>
+            <span class="scenery-card-badge">羌文化核心</span>
+          </div>
+          <p class="scenery-card-desc">全国最大的羌族聚居县，中国古羌城坐落于此。雄伟的碉楼群依山而建，夕阳西下时金色洒满石墙，远处云海翻涌，是体验羌族文化的首选之地。</p>
+          <div class="scenery-card-footer">
+            <span class="scenery-card-words">收录 <strong>6</strong> 个羌语词</span>
+            <span class="scenery-card-link">
+              查看详情
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+              </svg>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 甘堡藏寨 -->
+      <div class="scenery-card" onclick="openScenery(2)">
+        <div class="scenery-card-media">
+          <img loading="lazy" src="../assets/scenery-ganbao.jpg" alt="理县甘堡藏寨实拍">
+          <span class="scenery-card-photo-tag"><span class="dot"></span>实拍</span>
+          <span class="scenery-card-credit">甘堡藏寨 · 碉楼与藏式民居</span>
+        </div>
+        <div class="scenery-card-body">
+          <div class="scenery-card-header">
+            <div>
+              <div class="scenery-card-title">甘堡藏寨</div>
+              <div class="scenery-card-location">阿坝州 · 理县 · 甘堡乡</div>
+            </div>
+            <span class="scenery-card-badge">藏羌交融</span>
+          </div>
+          <p class="scenery-card-desc">建于山崖之上的百年藏寨，白色石屋与高耸碉楼鳞次栉比。五彩经幡在雪山下飘扬，博巴森根锅庄舞代代相传，是藏羌文化走廊上的明珠。</p>
+          <div class="scenery-card-footer">
+            <span class="scenery-card-words">收录 <strong>6</strong> 个羌语词</span>
+            <span class="scenery-card-link">
+              查看详情
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+              </svg>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 萝卜寨 -->
+      <div class="scenery-card" onclick="openScenery(3)">
+        <div class="scenery-card-media">
+          <img loading="lazy" src="../assets/scenery-luobu.jpg" alt="汶川萝卜寨黄泥羌寨巷道实拍">
+          <span class="scenery-card-photo-tag"><span class="dot"></span>实拍</span>
+          <span class="scenery-card-credit">萝卜寨 · 黄泥巷道与晾晒的玉米</span>
+        </div>
+        <div class="scenery-card-body">
+          <div class="scenery-card-header">
+            <div>
+              <div class="scenery-card-title">萝卜寨</div>
+              <div class="scenery-card-location">阿坝州 · 汶川县 · 雁门乡</div>
+            </div>
+            <span class="scenery-card-badge">云朵街市</span>
+          </div>
+          <p class="scenery-card-desc">被誉为"云朵上的街市"，是迄今为止发现的世界上最大、最古老的黄泥羌寨。黄泥垒筑的房屋层层叠叠，晨雾起时村寨如漂浮在云海之上。</p>
+          <div class="scenery-card-footer">
+            <span class="scenery-card-words">收录 <strong>6</strong> 个羌语词</span>
+            <span class="scenery-card-link">
+              查看详情
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+              </svg>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 羌族博物馆 -->
+      <div class="scenery-card" onclick="openScenery(4)">
+        <div class="scenery-card-media">
+          <img loading="lazy" src="../assets/scenery-museum.jpg" alt="中国羌族博物馆正门实拍">
+          <span class="scenery-card-photo-tag"><span class="dot"></span>实拍</span>
+          <span class="scenery-card-credit">中国羌族博物馆 · 正门与碉楼</span>
+        </div>
+        <div class="scenery-card-body">
+          <div class="scenery-card-header">
+            <div>
+              <div class="scenery-card-title">羌族博物馆</div>
+              <div class="scenery-card-location">阿坝州 · 茂县 · 中国古羌城内</div>
+            </div>
+            <span class="scenery-card-badge">文化宝库</span>
+          </div>
+          <p class="scenery-card-desc">中国唯一的羌族博物馆，馆藏上万件羌族文物。建筑融合羌式碉楼与传统殿堂风格，馆内展示羌绣、羌笛、释比法器等珍贵文化遗产。</p>
+          <div class="scenery-card-footer">
+            <span class="scenery-card-words">收录 <strong>6</strong> 个羌语词</span>
+            <span class="scenery-card-link">
+              查看详情
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+              </svg>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 曲谷乡 -->
+      <div class="scenery-card" onclick="openScenery(5)">
+        <div class="scenery-card-media">
+          <img loading="lazy" src="../assets/scenery-qugu.jpg" alt="茂县曲谷羌寨坝坝宴实拍">
+          <span class="scenery-card-photo-tag"><span class="dot"></span>实拍</span>
+          <span class="scenery-card-credit">曲谷羌寨 · 基勒俄足节坝坝宴</span>
+        </div>
+        <div class="scenery-card-body">
+          <div class="scenery-card-header">
+            <div>
+              <div class="scenery-card-title">曲谷乡</div>
+              <div class="scenery-card-location">阿坝州 · 茂县 · 曲谷乡</div>
+            </div>
+            <span class="scenery-card-badge">释比圣地</span>
+          </div>
+          <p class="scenery-card-desc">深藏岷山峡谷之中的古老羌乡，神树林立，晨雾缭绕。这里是羌族释比文化保存最完整的地方，被誉为"释比之乡"，保留着最古老的羌语发音。</p>
+          <div class="scenery-card-footer">
+            <span class="scenery-card-words">收录 <strong>6</strong> 个羌语词</span>
+            <span class="scenery-card-link">
+              查看详情
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+              </svg>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 羌人谷 -->
+      <div class="scenery-card" onclick="openScenery(6)">
+        <div class="scenery-card-media">
+          <img loading="lazy" src="../assets/scenery-qiangren.jpg" alt="汶川龙溪羌人谷石巷实拍">
+          <span class="scenery-card-photo-tag"><span class="dot"></span>实拍</span>
+          <span class="scenery-card-credit">羌人谷 · 石巷、碉楼与峡谷</span>
+        </div>
+        <div class="scenery-card-body">
+          <div class="scenery-card-header">
+            <div>
+              <div class="scenery-card-title">羌人谷</div>
+              <div class="scenery-card-location">阿坝州 · 汶川县 · 龙溪乡</div>
+            </div>
+            <span class="scenery-card-badge">羌人之源</span>
+          </div>
+          <p class="scenery-card-desc">传说中羌人南迁的定居之地，峡谷幽深，古祭塔矗立于峭壁之上。红绸系满神树，阳光穿透云层洒下金色光芒，神秘而庄严，是探寻羌族根源的秘境。</p>
+          <div class="scenery-card-footer">
+            <span class="scenery-card-words">收录 <strong>6</strong> 个羌语词</span>
+            <span class="scenery-card-link">
+              查看详情
+              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z"/>
+              </svg>
+            </span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- 风光详情弹窗 -->
+    <div class="scenery-modal" id="sceneryModal">
+      <div class="scenery-modal-close" onclick="closeScenery()">×</div>
+      <figure class="scenery-modal-figure">
+        <img class="scenery-modal-image" id="modalImage" src="" alt="">
+        <div class="scenery-modal-caption">
+          <span class="cap-left"><span class="dot"></span><span id="modalCaption">当地实拍</span></span>
+          <span class="scenery-modal-nav">
+            <button type="button" id="modalPrev" onclick="stepScenery(-1)" aria-label="上一处">‹</button>
+            <span class="scenery-modal-counter" id="modalCounter">1 / 6</span>
+            <button type="button" id="modalNext" onclick="stepScenery(1)" aria-label="下一处">›</button>
+          </span>
+        </div>
+      </figure>
+      <div class="scenery-modal-content">
+        <div class="scenery-modal-title" id="modalTitle"></div>
+        <div class="scenery-modal-location" id="modalLocation"></div>
+
+        <div class="scenery-modal-section">
+          <h3>风光简介</h3>
+          <p id="modalDesc"></p>
+        </div>
+
+        <div class="scenery-modal-section">
+          <h3>文化特色</h3>
+          <p id="modalCulture"></p>
+        </div>
+
+        <div class="scenery-modal-section">
+          <h3>当地羌语词</h3>
+          <div class="scenery-modal-words" id="modalWords"></div>
+        </div>
+
+        <div class="scenery-modal-source" id="modalSource"></div>
+      </div>
+    </div>
+
+    <!-- 底部导航栏 -->
+    <nav class="bottom-nav">
+      <a href="map.html" class="nav-item" data-dom-id="nav-map" data-nav-key="map">
+        <div class="nav-item-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 18.89l-6-2.11V5.11l6 2.11v11.67z"/>
+          </svg>
+        </div>
+        <span class="nav-item-label">寻声地图</span>
+      </a>
+      <a href="scenery.html" class="nav-item active" data-dom-id="nav-scenery" data-nav-key="scenery">
+        <div class="nav-item-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14.5 17l-5-3.5V5c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v8.5l5 3.5v2H2v-2l12.5-8zM21 19v1H3v-1l9-6 9 6zM8.5 10H6v4h2.5v3H4V7h4.5v3z"/>
+          </svg>
+        </div>
+        <span class="nav-item-label">羌地风光</span>
+      </a>
+      <a href="passport.html" class="nav-item" data-dom-id="nav-passport" data-nav-key="passport">
+        <div class="nav-item-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
+          </svg>
+        </div>
+        <span class="nav-item-label">声纹护照</span>
+      </a>
+    </nav>
+  </div>
+
+  <script>
+    // 风光数据（图片均为当地实拍）
+    const sceneryData = {
+      1: {
+        title: '茂县古羌城',
+        location: '阿坝州 · 茂县 · 凤仪镇',
+        image: '../assets/scenery-maoxian.jpg',
+        caption: '中国古羌城 · 羌碉群与"中国古羌城"石碑',
+        source: '照片说明：中国古羌城景区实拍，画面中石碑刻有"中国古羌城"，后方为羌族碉楼群与羌寨建筑。',
+        desc: '茂县是全国最大的羌族聚居县，羌族人口约占全县总人口的80%。中国古羌城坐落于茂县凤仪镇，占地面积3000余亩，是目前全国规模最大、规格最高、功能最全的羌族文化核心展示区。雄伟的碉楼群依山而建，夕阳西下时金色洒满石墙，远处云海翻涌，蔚为壮观。',
+        culture: '茂县是羌语标准音的重要参考地，保留了最为完整的羌族语言文化传统。每年羌年庆典最为隆重，萨朗舞、推杆、口弦等非遗项目在这里得到了完整传承。羌族博物馆也坐落于此，馆藏上万件珍贵文物。',
+        words: [
+          { qiang: 'rma', hanzi: '日麦', meaning: '你好' },
+          { qiang: 'kʰə', hanzi: '柯俄', meaning: '我' },
+          { qiang: 'mi', hanzi: '米', meaning: '人' },
+          { qiang: 'ŋu', hanzi: '俄吾', meaning: '水' }
+        ]
+      },
+      2: {
+        title: '甘堡藏寨',
+        location: '阿坝州 · 理县 · 甘堡乡',
+        image: '../assets/scenery-ganbao.jpg',
+        caption: '甘堡藏寨 · 山坡上的碉楼与藏式民居',
+        source: '照片说明：理县甘堡藏寨全景实拍，可见高耸碉楼、藏式石屋与山体上的吉祥图案。',
+        desc: '甘堡藏寨始建于汉武帝时期，是嘉绒藏区第一大寨。整个寨子依山傍河而建，座落在海拔1900米的山坡上，形如簸箕。80多栋石屋与6座碉楼鳞次栉比，白色石墙在阳光下熠熠生辉，五彩经幡在雪山下猎猎飘扬。',
+        culture: '甘堡藏寨地处藏羌文化走廊，是藏羌文化交融的典型代表。博巴森根锅庄舞已被列入国家级非物质文化遗产。这里的羌族语言融入了部分藏语借词，形成了独特的方言特色。',
+        words: [
+          { qiang: 'bæ', hanzi: '拔', meaning: '茶' },
+          { qiang: 'ʂpa', hanzi: '释巴', meaning: '酒' },
+          { qiang: 'tʂu', hanzi: '住', meaning: '饭' }
+        ]
+      },
+      3: {
+        title: '萝卜寨',
+        location: '阿坝州 · 汶川县 · 雁门乡',
+        image: '../assets/scenery-luobu.jpg',
+        caption: '萝卜寨 · 黄泥巷道、晾晒的玉米与背柴的老人',
+        source: '照片说明：汶川萝卜寨村内实拍，黄泥夯筑的院墙与石板屋顶层层叠叠，屋檐下晾晒着玉米。',
+        desc: '萝卜寨是迄今为止发现的世界上最大、最古老的黄泥羌寨，被誉为"云朵上的街市"和"古羌王的遗都"。寨区位于海拔2000米的高半山台地上，寨房全用黄泥垒筑而成，层层叠叠从山脚延伸到山顶。晨雾起时，整个村寨如漂浮在云海之上，如梦似幻。',
+        culture: '萝卜寨拥有近5000年历史，是羌人迁徙定居的重要据点。这里保留了完整的黄泥建筑技艺和古老的羌族风俗。羌绣、羌笛、推杆等传统文化在这里代代相传，羌语发音也保留了许多古语特征。',
+        words: [
+          { qiang: 'tɕi', hanzi: '基', meaning: '一' },
+          { qiang: 'sə', hanzi: '萨', meaning: '三' },
+          { qiang: 'ŋa', hanzi: '俄阿', meaning: '五' }
+        ]
+      },
+      4: {
+        title: '羌族博物馆',
+        location: '阿坝州 · 茂县 · 中国古羌城内',
+        image: '../assets/scenery-museum.jpg',
+        caption: '中国羌族博物馆 · 正门、碉楼与连廊',
+        source: '照片说明：茂县中国羌族博物馆正门实拍，石砌外墙、木质挑廊与左侧碉楼为其标志性造型。',
+        desc: '中国羌族博物馆是全国唯一的羌族专题博物馆，建筑融合了羌式碉楼元素与传统殿堂风格，庄严大气。馆内收藏了上万件羌族文物，涵盖生产生活、宗教祭祀、服饰刺绣、音乐舞蹈等各个方面，是了解羌族文化的宝库。',
+        culture: '博物馆设有"羌源厅""羌韵厅""羌魂厅"等多个展厅，系统展示了羌族从远古迁徙到现代发展的完整历史脉络。馆内藏有珍贵的释比法器、羌绣精品、古羌笛等稀世文物。',
+        words: [
+          { qiang: 'rma', hanzi: '日麦', meaning: '羌人' },
+          { qiang: 'ʐu', hanzi: '汝', meaning: '龙' },
+          { qiang: 'le', hanzi: '勒', meaning: '虎' },
+          { qiang: 'mi', hanzi: '米', meaning: '人' }
+        ]
+      },
+      5: {
+        title: '曲谷乡',
+        location: '阿坝州 · 茂县 · 曲谷乡',
+        image: '../assets/scenery-qugu.jpg',
+        caption: '曲谷羌寨 · 基勒俄足节的坝坝宴',
+        source: '照片说明：中国网《走进四川茂县曲谷羌寨 探秘古老的基勒俄足节》组图，曲谷羌寨全村围坐"坝坝宴"的实拍。',
+        desc: '曲谷乡深藏于岷山深处的峡谷之中，神树林立，晨雾缭绕，炊烟袅袅。这里山高路远，交通闭塞，因而保留了最为原始的羌族生态与文化。古老的石屋散落在山谷间，阳光穿透树冠洒下斑驳光影，神秘而宁静。',
+        culture: '曲谷乡被誉为"释比之乡"，是羌族释比文化保存最完整的地方。释比是羌族的祭师、医者和文化传承者，猴头帽、神鼓、法杖是其标志性法器。这里的羌语发音也最为古老，保留了许多其他地区已经消失的古音。',
+        words: [
+          { qiang: 'ʂpa', hanzi: '释巴', meaning: '酒' },
+          { qiang: 'ŋu', hanzi: '俄吾', meaning: '水' },
+          { qiang: 'kʰə', hanzi: '柯俄', meaning: '我' }
+        ]
+      },
+      6: {
+        title: '羌人谷',
+        location: '阿坝州 · 汶川县 · 龙溪乡',
+        image: '../assets/scenery-qiangren.jpg',
+        caption: '羌人谷 · 木构石屋、碉楼与峡谷雪山',
+        source: '照片说明：汶川龙溪羌人谷村落实拍，巷道两侧为羌族木构石砌民居，远处是碉楼与峡谷雪山。',
+        desc: '羌人谷位于汶川龙溪乡，是传说中羌人南迁的定居之地。峡谷幽深，两侧峭壁入云，古祭塔矗立于悬崖之巅，红绸系满神树。阳光穿透云层，洒下一道道金色光柱，云雾在谷中翻涌，神秘而庄严，仿佛置身于远古传说之中。',
+        culture: '羌人谷是探寻羌族根源的秘境，保留了最原始的自然崇拜和白石信仰。谷内的阿尔村是著名的释比文化村，至今仍有完整的祭山、祭水仪式。这里的羌语被认为最接近古羌语，是研究羌族语言演变的活化石。',
+        words: [
+          { qiang: 'rma', hanzi: '日麦', meaning: '羌人' },
+          { qiang: 'tɕi', hanzi: '基', meaning: '一' },
+          { qiang: 'sə', hanzi: '萨', meaning: '三' },
+          { qiang: 'bæ', hanzi: '拔', meaning: '茶' }
+        ]
+      }
+    };
+
+    const SCENERY_IDS = Object.keys(sceneryData).map(Number);
+    let currentScenery = 1;
+
+    function renderScenery(id) {
+      const data = sceneryData[id];
+      if (!data) return;
+      currentScenery = id;
+
+      const img = document.getElementById('modalImage');
+      img.src = data.image;
+      img.alt = data.title + ' 实拍';
+      document.getElementById('modalCaption').textContent = data.caption || '当地实拍';
+      document.getElementById('modalTitle').textContent = data.title;
+      document.getElementById('modalLocation').textContent = data.location;
+      document.getElementById('modalDesc').textContent = data.desc;
+      document.getElementById('modalCulture').textContent = data.culture;
+      document.getElementById('modalSource').textContent = data.source || '';
+
+      const wordsEl = document.getElementById('modalWords');
+      wordsEl.innerHTML = data.words.map(w =>
+        `<span class="scenery-modal-word-tag" onclick="speakQiangWord('${w.qiang}')">${w.qiang} · ${w.hanzi} · ${w.meaning}</span>`
+      ).join('');
+
+      const idx = SCENERY_IDS.indexOf(id);
+      document.getElementById('modalCounter').textContent = (idx + 1) + ' / ' + SCENERY_IDS.length;
+      document.getElementById('modalPrev').disabled = idx <= 0;
+      document.getElementById('modalNext').disabled = idx >= SCENERY_IDS.length - 1;
+    }
+
+    function openScenery(id) {
+      if (!sceneryData[id]) return;
+      renderScenery(id);
+      document.getElementById('sceneryModal').classList.add('active');
+      document.body.style.overflow = 'hidden';
+      document.getElementById('sceneryModal').scrollTop = 0;
+    }
+
+    function stepScenery(dir) {
+      const idx = SCENERY_IDS.indexOf(currentScenery);
+      const next = SCENERY_IDS[idx + dir];
+      if (next === undefined) return;
+      renderScenery(next);
+      document.getElementById('sceneryModal').scrollTop = 0;
+    }
+
+    function closeScenery() {
+      document.getElementById('sceneryModal').classList.remove('active');
+      document.body.style.overflow = '';
+    }
+
+    // 语音合成：用英语引擎拼读国际音标近似音
+    const ipaToEnMap = {
+      'rma': 'rma',
+      'ʂpa': 'shpar',
+      'kʰə': 'kuh',
+      'tɕi': 'jee',
+      'mi': 'mee',
+      'ŋu': 'ngoo',
+      'bæ': 'bah',
+      'ʐu': 'roo',
+      'sə': 'suh',
+      'ŋa': 'ngah',
+      'tʂu': 'joo',
+      'le': 'leh'
+    };
+
+    function speakQiangWord(qiangText) {
+      if (!qiangText || !window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      const enText = ipaToEnMap[qiangText] || qiangText;
+      const utter = new SpeechSynthesisUtterance(enText);
+      utter.lang = 'en-US';
+      utter.rate = 0.7;
+      const voices = window.speechSynthesis.getVoices();
+      const enVoice = voices.find(v => v.lang.startsWith('en'));
+      if (enVoice) utter.voice = enVoice;
+      window.speechSynthesis.speak(utter);
+    }
+
+    if (window.speechSynthesis) {
+      window.speechSynthesis.getVoices();
+    }
+
+    // ===== 交互 =====
+    const modal = document.getElementById('sceneryModal');
+
+    // 点击背景关闭
+    modal.addEventListener('click', function (e) {
+      if (e.target === this || e.target.classList.contains('scenery-modal-figure')) closeScenery();
+    });
+
+    // 键盘：Esc 关闭、左右切换
+    document.addEventListener('keydown', function (e) {
+      if (!modal.classList.contains('active')) return;
+      if (e.key === 'Escape') closeScenery();
+      if (e.key === 'ArrowLeft') stepScenery(-1);
+      if (e.key === 'ArrowRight') stepScenery(1);
+    });
+
+    // 图片载入淡入
+    document.querySelectorAll('.scenery-card-media img').forEach(img => {
+      if (img.complete && img.naturalWidth) {
+        img.classList.add('loaded');
+      } else {
+        img.addEventListener('load', () => img.classList.add('loaded'));
+        img.addEventListener('error', () => img.classList.add('loaded'));
+      }
+    });
+
+    // 手机端左右滑动切换
+    let touchStartX = null;
+    const modalImage = document.getElementById('modalImage');
+    modalImage.addEventListener('touchstart', e => {
+      touchStartX = e.changedTouches[0].clientX;
+    }, { passive: true });
+    modalImage.addEventListener('touchend', e => {
+      if (touchStartX === null) return;
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      touchStartX = null;
+      if (Math.abs(dx) > 60) stepScenery(dx < 0 ? 1 : -1);
+    }, { passive: true });
+  </script>
+</body>
+</html>

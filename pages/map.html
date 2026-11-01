@@ -1,0 +1,2291 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>寻声羌谷 - 语言地图打卡</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Sans+SC:wght@300;400;500;600;700&family=Noto+Serif+SC:wght@400;500;600;700&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../colors_and_type.css">
+  <style>
+    .page-header {
+      padding-top: var(--space-8);
+      position: relative;
+    }
+    .page-header::before {
+      content: '';
+      position: absolute;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 60px;
+      background: radial-gradient(ellipse at center, rgba(232, 200, 114, 0.15) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .map-section {
+      padding: 0 var(--space-4);
+    }
+    .map-wrapper {
+      position: relative;
+      margin: var(--space-4);
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      border: 1px solid var(--border-gold-strong);
+      box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.4),
+        inset 0 1px 0 rgba(232, 200, 114, 0.1);
+    }
+    /* 地图四角羌绣装饰 */
+    .map-wrapper::before,
+    .map-wrapper::after {
+      content: '';
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      pointer-events: none;
+      z-index: 20;
+    }
+    .map-wrapper::before {
+      top: 8px;
+      left: 8px;
+      border-top: 2px solid var(--qiang-gold);
+      border-left: 2px solid var(--qiang-gold);
+      border-top-left-radius: 8px;
+    }
+    .map-wrapper::after {
+      bottom: 8px;
+      right: 8px;
+      border-bottom: 2px solid var(--qiang-gold);
+      border-right: 2px solid var(--qiang-gold);
+      border-bottom-right-radius: 8px;
+    }
+    .map-corner-tl, .map-corner-tr, .map-corner-bl, .map-corner-br {
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      pointer-events: none;
+      z-index: 21;
+    }
+    .map-corner-tl { top: 4px; left: 4px; }
+    .map-corner-tr { top: 4px; right: 4px; transform: scaleX(-1); }
+    .map-corner-bl { bottom: 4px; left: 4px; transform: scaleY(-1); }
+    .map-corner-br { bottom: 4px; right: 4px; transform: scale(-1); }
+
+    .map-container {
+      margin: 0;
+      border-radius: 0;
+      border: none;
+      aspect-ratio: 3 / 4.2;
+      position: relative;
+      background: linear-gradient(180deg, #1a0d08 0%, #2C1810 30%, #241510 60%, #1F0F0A 100%);
+    }
+    .map-svg {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    /* 地图标题条 */
+    .map-title-bar {
+      position: absolute;
+      top: 16px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 15;
+      text-align: center;
+    }
+    .map-title {
+      font-family: "ZCOOL XiaoWei", "Ma Shan Zheng", serif;
+      font-size: 18px;
+      color: var(--qiang-gold);
+      letter-spacing: 4px;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.8);
+    }
+    .map-title-sub {
+      font-size: 10px;
+      color: var(--text-muted);
+      letter-spacing: 2px;
+      margin-top: 2px;
+    }
+    /* 指南针 */
+    .map-compass {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 36px;
+      height: 36px;
+      z-index: 15;
+      opacity: 0.7;
+    }
+    /* 比例尺 */
+    .map-scale {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      z-index: 15;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .map-scale-bar {
+      width: 40px;
+      height: 2px;
+      background: var(--qiang-gold);
+      opacity: 0.6;
+      position: relative;
+    }
+    .map-scale-bar::before,
+    .map-scale-bar::after {
+      content: '';
+      position: absolute;
+      top: -3px;
+      width: 1px;
+      height: 8px;
+      background: var(--qiang-gold);
+      opacity: 0.6;
+    }
+    .map-scale-bar::before { left: 0; }
+    .map-scale-bar::after { right: 0; }
+    .map-scale-text {
+      font-size: 9px;
+      color: var(--text-muted);
+      font-family: var(--font-serif);
+    }
+
+    /* 点位样式 */
+    .map-point {
+      position: absolute;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+    }
+    .map-point:hover {
+      transform: translate(-50%, -50%) scale(1.08);
+    }
+    .map-point-marker {
+      width: 40px;
+      height: 40px;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .map-point-marker::before {
+      content: '';
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 2px solid var(--qiang-gold);
+      opacity: 0;
+      animation: markerRipple 2s ease-out infinite;
+    }
+    .map-point.current .map-point-marker::before {
+      opacity: 1;
+    }
+    @keyframes markerRipple {
+      0% { transform: translate(-50%, -50%) scale(0.8); opacity: 0.8; }
+      100% { transform: translate(-50%, -50%) scale(1.8); opacity: 0; }
+    }
+    .map-point-inner {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--qiang-red-gradient);
+      border: 2px solid var(--qiang-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow:
+        0 0 0 3px rgba(196, 90, 60, 0.2),
+        0 4px 12px rgba(0, 0, 0, 0.4);
+      position: relative;
+      z-index: 2;
+    }
+    .map-point.completed .map-point-inner {
+      background: var(--qiang-gold-gradient);
+      box-shadow:
+        0 0 0 3px rgba(232, 200, 114, 0.2),
+        0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+    .map-point.locked .map-point-inner {
+      background: rgba(60, 35, 25, 0.8);
+      border-color: var(--text-muted);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+    .map-point-icon {
+      width: 14px;
+      height: 14px;
+      fill: #FFF;
+    }
+    .map-point.completed .map-point-icon {
+      fill: var(--bg-dark-primary);
+    }
+    .map-point.locked .map-point-icon {
+      fill: var(--text-muted);
+      opacity: 0.6;
+    }
+    .map-point-label {
+      position: absolute;
+      top: calc(100% + 2px);
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      font-family: "ZCOOL XiaoWei", "Ma Shan Zheng", serif;
+      font-size: 12px;
+      color: var(--text-gold);
+      text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.6);
+      letter-spacing: 1px;
+    }
+    .map-point.locked .map-point-label {
+      color: var(--text-muted);
+      opacity: 0.5;
+    }
+    .map-point-num {
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: var(--bg-dark-primary);
+      border: 1px solid var(--qiang-gold);
+      font-size: 9px;
+      color: var(--qiang-gold);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: var(--font-serif);
+      z-index: 3;
+    }
+
+    /* 图例 */
+    .map-legend {
+      display: flex;
+      justify-content: center;
+      gap: var(--space-6);
+      padding: var(--space-3) var(--space-4);
+      margin-top: var(--space-1);
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      font-size: var(--font-size-xs);
+      color: var(--text-secondary);
+    }
+    .legend-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      border: 1.5px solid var(--qiang-gold);
+    }
+    .legend-dot.completed {
+      background: var(--qiang-gold-gradient);
+    }
+    .legend-dot.current {
+      background: var(--qiang-red-gradient);
+      box-shadow: 0 0 8px rgba(196, 90, 60, 0.6);
+    }
+    .legend-dot.locked {
+      background: transparent;
+      border-color: var(--text-muted);
+    }
+
+    /* 站点信息卡 */
+    .station-info {
+      margin: var(--space-3) var(--space-4);
+      padding: var(--space-5);
+      background: var(--bg-card);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-lg);
+      position: relative;
+      backdrop-filter: blur(10px);
+    }
+    .station-info::before,
+    .station-info::after {
+      content: '';
+      position: absolute;
+      width: 16px;
+      height: 16px;
+      pointer-events: none;
+    }
+    .station-info::before {
+      top: 6px;
+      left: 6px;
+      border-top: 1.5px solid var(--qiang-gold);
+      border-left: 1.5px solid var(--qiang-gold);
+      border-top-left-radius: 4px;
+      opacity: 0.6;
+    }
+    .station-info::after {
+      bottom: 6px;
+      right: 6px;
+      border-bottom: 1.5px solid var(--qiang-gold);
+      border-right: 1.5px solid var(--qiang-gold);
+      border-bottom-right-radius: 4px;
+      opacity: 0.6;
+    }
+    .station-info-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-3);
+    }
+    .station-name {
+      font-family: "ZCOOL XiaoWei", "Ma Shan Zheng", serif;
+      font-size: var(--font-size-lg);
+      color: var(--text-gold);
+      letter-spacing: 2px;
+    }
+    .station-status {
+      font-size: var(--font-size-xs);
+      padding: 3px 10px;
+      border-radius: var(--radius-full);
+      font-family: var(--font-body);
+    }
+    .station-status.done {
+      background: rgba(232, 200, 114, 0.15);
+      color: var(--qiang-gold);
+      border: 1px solid var(--border-gold);
+    }
+    .station-status.current {
+      background: rgba(196, 90, 60, 0.2);
+      color: var(--text-red);
+      border: 1px solid var(--border-red);
+    }
+    .station-status.locked {
+      background: rgba(245, 230, 211, 0.05);
+      color: var(--text-muted);
+      border: 1px solid rgba(245, 230, 211, 0.15);
+    }
+    .station-location {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: var(--font-size-xs);
+      color: var(--text-muted);
+      margin-bottom: var(--space-3);
+    }
+    .station-location svg {
+      width: 12px;
+      height: 12px;
+      fill: currentColor;
+      opacity: 0.6;
+    }
+    .station-desc {
+      font-size: var(--font-size-sm);
+      color: var(--text-secondary);
+      line-height: var(--line-height-relaxed);
+      margin-bottom: var(--space-4);
+    }
+    .station-culture {
+      background: rgba(31, 15, 10, 0.5);
+      border-left: 2px solid var(--qiang-gold);
+      padding: var(--space-3);
+      margin-bottom: var(--space-4);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    }
+    .station-culture-title {
+      font-size: var(--font-size-xs);
+      color: var(--text-gold);
+      margin-bottom: var(--space-1);
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .station-culture-text {
+      font-size: var(--font-size-xs);
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .station-words-title {
+      font-size: var(--font-size-xs);
+      color: var(--text-muted);
+      margin-bottom: var(--space-2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .station-words-title strong {
+      color: var(--text-gold);
+      font-weight: 500;
+    }
+    .station-words {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--space-2);
+    }
+    .station-word-tag {
+      font-size: var(--font-size-xs);
+      padding: 4px 10px;
+      background: rgba(31, 15, 10, 0.6);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-full);
+      color: var(--text-gold);
+      font-family: var(--font-serif);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      text-align: center;
+    }
+    .station-word-tag:hover {
+      background: rgba(232, 200, 114, 0.15);
+      border-color: var(--qiang-gold);
+    }
+    .station-word-tag.locked {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+    /* 词条卡片 */
+    .word-card {
+      background: rgba(31, 15, 10, 0.6);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-md);
+      padding: var(--space-3);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .word-card:hover {
+      background: rgba(232, 200, 114, 0.12);
+      border-color: var(--qiang-gold);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    }
+    .word-card:active {
+      transform: translateY(0);
+    }
+    .word-card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: var(--space-2);
+    }
+    .word-qiang {
+      font-family: var(--font-serif);
+      font-size: var(--font-size-lg);
+      color: var(--text-gold);
+      font-weight: 600;
+    }
+    .word-play-btn {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: var(--qiang-gold-gradient);
+      border: none;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+    .word-play-btn svg {
+      width: 14px;
+      height: 14px;
+      fill: #2C1810;
+    }
+    .word-play-btn:hover {
+      transform: scale(1.1);
+    }
+    .word-play-btn:active {
+      transform: scale(0.95);
+    }
+    .word-card-bottom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .word-hanzi {
+      font-size: var(--font-size-sm);
+      color: var(--text-primary);
+      font-family: var(--font-serif);
+    }
+    .word-meaning {
+      font-size: var(--font-size-xs);
+      color: var(--text-muted);
+    }
+    .explore-btn {
+      width: calc(100% - var(--space-8));
+      margin: var(--space-2) var(--space-4) var(--space-6);
+      padding: var(--space-4);
+      font-size: var(--font-size-md);
+      position: relative;
+      overflow: hidden;
+    }
+    .explore-btn::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transition: left 0.5s ease;
+    }
+    .explore-btn:hover::before {
+      left: 100%;
+    }
+    .explore-btn.locked {
+      background: rgba(60, 35, 25, 0.8);
+      color: var(--text-muted);
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+
+    /* 进度卡片增强 */
+    .progress-card {
+      position: relative;
+      overflow: hidden;
+    }
+    .progress-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: var(--qiang-gold-gradient);
+      opacity: 0.5;
+    }
+
+    /* 路径动画光点 */
+    .path-glow {
+      position: absolute;
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--qiang-gold);
+      box-shadow: 0 0 10px var(--qiang-gold), 0 0 20px rgba(232, 200, 114, 0.5);
+      pointer-events: none;
+      z-index: 8;
+    }
+
+    /* 站点风情图 */
+    .station-scenery {
+      position: relative;
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      overflow: hidden;
+      margin: 0 var(--space-4);
+      border: 1px solid var(--border-gold-strong);
+      border-bottom: none;
+      margin-top: var(--space-4);
+    }
+    .scenery-svg {
+      width: 100%;
+      height: 140px;
+      display: block;
+    }
+    .scenery-overlay {
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      padding: var(--space-3) var(--space-4);
+      background: linear-gradient(transparent, rgba(28, 13, 8, 0.85));
+    }
+    .scenery-label {
+      font-family: "ZCOOL XiaoWei", var(--font-heading);
+      font-size: var(--font-size-sm);
+      color: var(--text-gold);
+      letter-spacing: 2px;
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    /* 站点风情图标签：金色胶囊，不再压住照片题字 */
+    .station-scenery .scenery-overlay,
+    .challenge-scenery .scenery-overlay {
+      top: 12px;
+      bottom: auto;
+      left: 12px;
+      right: auto;
+      padding: 0;
+      background: none;
+    }
+    .station-scenery .scenery-label,
+    .challenge-scenery .scenery-label {
+      display: inline-block;
+      background: rgba(28, 13, 8, 0.72);
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-full);
+      padding: 4px 11px;
+      font-size: 11px;
+      letter-spacing: 1px;
+      color: var(--qiang-gold-light);
+      backdrop-filter: blur(6px);
+      text-shadow: none;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+    }
+
+    /* ===== 进度存档相关 ===== */
+    .station-status.unlocked {
+      background: rgba(232, 200, 114, 0.12);
+      color: var(--qiang-gold);
+      border-color: var(--border-gold);
+    }
+    .station-status.done {
+      background: rgba(140, 190, 140, 0.12);
+      color: #9CCB9C;
+      border-color: rgba(140, 190, 140, 0.38);
+    }
+    .progress-reset {
+      flex: none;
+      align-self: center;
+      background: none;
+      border: 1px solid var(--border-gold);
+      border-radius: var(--radius-full);
+      color: var(--text-muted);
+      font-size: 10px;
+      padding: 2px 9px;
+      cursor: pointer;
+      letter-spacing: 1px;
+      font-family: inherit;
+    }
+    .progress-reset:active {
+      color: var(--qiang-gold);
+      border-color: var(--border-gold-strong);
+    }
+    /* ===== 站点实拍风情图（替换手绘 SVG） ===== */
+    .station-scenery {
+      height: 190px;
+    }
+    .station-scenery .scenery-svg {
+      display: none;
+    }
+    .station-photo {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center 42%;
+      display: block;
+      opacity: 0;
+      transform: scale(1.06);
+      transition: opacity .55s ease, transform 7s ease;
+    }
+    .station-photo.loaded {
+      opacity: 1;
+      transform: scale(1);
+    }
+    @media (min-width: 900px) {
+      .station-scenery { height: 280px; }
+    }
+
+    .station-scenery + .station-info {
+      margin-top: 0;
+      border-top: none;
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    }
+
+    /* ============================================
+       桌面端横屏布局 (>= 900px)
+       ============================================ */
+    @media (min-width: 900px) {
+      .app-container {
+        max-width: 1100px !important;
+        width: 95% !important;
+        min-height: 600px !important;
+        height: auto !important;
+        padding-bottom: var(--space-6) !important;
+      }
+
+      .page-header {
+        padding: var(--space-6) var(--space-6) var(--space-3) !important;
+      }
+
+      /* 左右分栏容器 */
+      .map-layout {
+        display: flex;
+        gap: var(--space-6);
+        padding: 0 var(--space-6);
+        align-items: flex-start;
+      }
+
+      .map-left {
+        flex: 1 1 55%;
+        min-width: 0;
+      }
+
+      .map-right {
+        flex: 1 1 45%;
+        min-width: 0;
+        position: sticky;
+        top: var(--space-6);
+      }
+
+      .map-wrapper {
+        margin: 0 !important;
+      }
+
+      .map-container {
+        aspect-ratio: 3 / 4.2;
+        max-height: 75vh;
+      }
+
+      .station-info {
+        margin-top: 0 !important;
+      }
+
+      .explore-btn {
+        width: 100% !important;
+        margin: var(--space-4) 0 0 !important;
+      }
+
+      .bottom-nav {
+        display: none !important;
+      }
+
+      /* 桌面端侧边导航 */
+      .desktop-nav {
+        display: none;
+      }
+    }
+
+    @media (min-width: 1200px) {
+      .app-container {
+        max-width: 1200px !important;
+      }
+      .map-container {
+        max-height: 70vh;
+      }
+    }
+  </style>
+</head>
+<body class="qiang-bg-pattern cloud-pattern">
+  <div class="app-container">
+    <!-- 页面头部 -->
+    <header class="page-header">
+      <h1 class="page-title">寻声羌谷</h1>
+      <p class="page-subtitle">岷江流域·羌语方言地图</p>
+    </header>
+
+    <div class="content-area">
+      <!-- 进度条卡片 -->
+      <div class="progress-card">
+        <div class="progress-header">
+          <span class="progress-title">探索进度</span>
+          <span class="progress-count"><strong id="progressNum">1</strong> / 6 站点</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-bar-fill" id="progressFill" style="width: 17%;"></div>
+        </div>
+        <div style="display: flex; justify-content: space-between; margin-top: var(--space-2);">
+          <span id="collectedWords" style="font-size: var(--font-size-xs); color: var(--text-muted);">已收集 6 个词条</span>
+          <span id="nextStation" style="font-size: var(--font-size-xs); color: var(--qiang-gold);">下一站：甘堡藏寨</span>
+          <button type="button" id="resetProgress" class="progress-reset">重置</button>
+        </div>
+      </div>
+
+      <!-- 地图区域 -->
+      <div class="map-layout">
+        <div class="map-left">
+          <section class="map-section">
+        <div class="map-wrapper">
+          <!-- 四角装饰 -->
+          <svg class="map-corner-tl" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 0 L0 0 L0 2 M0 6 L0 10 M6 0 L10 0" stroke="#E8C872" stroke-width="1" fill="none" opacity="0.6"/>
+            <circle cx="2" cy="2" r="1" fill="#E8C872" opacity="0.8"/>
+          </svg>
+          <svg class="map-corner-tr" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 0 L0 0 L0 2 M0 6 L0 10 M6 0 L10 0" stroke="#E8C872" stroke-width="1" fill="none" opacity="0.6"/>
+            <circle cx="2" cy="2" r="1" fill="#E8C872" opacity="0.8"/>
+          </svg>
+          <svg class="map-corner-bl" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 0 L0 0 L0 2 M0 6 L0 10 M6 0 L10 0" stroke="#E8C872" stroke-width="1" fill="none" opacity="0.6"/>
+            <circle cx="2" cy="2" r="1" fill="#E8C872" opacity="0.8"/>
+          </svg>
+          <svg class="map-corner-br" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 0 L0 0 L0 2 M0 6 L0 10 M6 0 L10 0" stroke="#E8C872" stroke-width="1" fill="none" opacity="0.6"/>
+            <circle cx="2" cy="2" r="1" fill="#E8C872" opacity="0.8"/>
+          </svg>
+
+          <div class="map-container">
+            <!-- 地图标题 -->
+            <div class="map-title-bar">
+              <div class="map-title">羌 山 导 览</div>
+              <div class="map-title-sub">Qiang Mountain Guide</div>
+            </div>
+
+            <!-- 指南针 -->
+            <svg class="map-compass" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="18" cy="18" r="16" fill="none" stroke="#E8C872" stroke-width="0.5" opacity="0.5"/>
+              <circle cx="18" cy="18" r="12" fill="none" stroke="#E8C872" stroke-width="0.5" opacity="0.3"/>
+              <polygon points="18,4 20,18 18,16 16,18" fill="#C45A3C" opacity="0.8"/>
+              <polygon points="18,32 20,18 18,20 16,18" fill="#E8C872" opacity="0.6"/>
+              <text x="18" y="7" text-anchor="middle" fill="#E8C872" font-size="6" font-family="serif" opacity="0.8">N</text>
+            </svg>
+
+            <!-- 比例尺 -->
+            <div class="map-scale">
+              <div class="map-scale-bar"></div>
+              <span class="map-scale-text">5km</span>
+            </div>
+
+            <!-- 地图 SVG -->
+            <svg class="map-svg" viewBox="0 0 343 480" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <!-- 天空渐变 -->
+                <linearGradient id="skyGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#1a0d08;stop-opacity:1"/>
+                  <stop offset="30%" style="stop-color:#2C1810;stop-opacity:1"/>
+                  <stop offset="60%" style="stop-color:#241510;stop-opacity:1"/>
+                  <stop offset="100%" style="stop-color:#1F0F0A;stop-opacity:1"/>
+                </linearGradient>
+                <!-- 远山渐变 -->
+                <linearGradient id="farMountain" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#3D2318;stop-opacity:0.5"/>
+                  <stop offset="100%" style="stop-color:#2A1810;stop-opacity:0.8"/>
+                </linearGradient>
+                <!-- 中山渐变 -->
+                <linearGradient id="midMountain" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#4A2C1E;stop-opacity:0.7"/>
+                  <stop offset="100%" style="stop-color:#2A1810;stop-opacity:0.9"/>
+                </linearGradient>
+                <!-- 近山渐变 -->
+                <linearGradient id="nearMountain" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#5A3725;stop-opacity:0.85"/>
+                  <stop offset="100%" style="stop-color:#1F0F0A;stop-opacity:1"/>
+                </linearGradient>
+                <!-- 河流渐变 -->
+                <linearGradient id="riverGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#E8C872;stop-opacity:0.08"/>
+                  <stop offset="50%" style="stop-color:#E8C872;stop-opacity:0.25"/>
+                  <stop offset="100%" style="stop-color:#E8C872;stop-opacity:0.15"/>
+                </linearGradient>
+                <!-- 河流高光 -->
+                <linearGradient id="riverShine" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#F2D98E;stop-opacity:0"/>
+                  <stop offset="50%" style="stop-color:#F2D98E;stop-opacity:0.4"/>
+                  <stop offset="100%" style="stop-color:#F2D98E;stop-opacity:0"/>
+                </linearGradient>
+                <!-- 路线渐变 -->
+                <linearGradient id="routeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#E8C872;stop-opacity:0.2"/>
+                  <stop offset="50%" style="stop-color:#C45A3C;stop-opacity:0.7"/>
+                  <stop offset="100%" style="stop-color:#E8C872;stop-opacity:0.3"/>
+                </linearGradient>
+                <!-- 云雾渐变 -->
+                <radialGradient id="fogGradient" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" style="stop-color:#E8C872;stop-opacity:0.06"/>
+                  <stop offset="100%" style="stop-color:#E8C872;stop-opacity:0"/>
+                </radialGradient>
+                <!-- 梯田渐变 -->
+                <linearGradient id="terraceGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#4A3520;stop-opacity:0.4"/>
+                  <stop offset="100%" style="stop-color:#3A2818;stop-opacity:0.6"/>
+                </linearGradient>
+                <!-- 太阳光晕 -->
+                <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" style="stop-color:#F2D98E;stop-opacity:0.3"/>
+                  <stop offset="40%" style="stop-color:#E8C872;stop-opacity:0.1"/>
+                  <stop offset="100%" style="stop-color:#E8C872;stop-opacity:0"/>
+                </radialGradient>
+                <!-- 飘动云雾动画 -->
+                <linearGradient id="cloudMove" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" style="stop-color:#E8C872;stop-opacity:0"/>
+                  <stop offset="50%" style="stop-color:#E8C872;stop-opacity:0.08"/>
+                  <stop offset="100%" style="stop-color:#E8C872;stop-opacity:0"/>
+                </linearGradient>
+              </defs>
+
+              <!-- 背景天空 -->
+              <rect width="343" height="480" fill="url(#skyGradient)"/>
+
+              <!-- 太阳光晕 -->
+              <circle cx="280" cy="50" r="60" fill="url(#sunGlow)"/>
+              <!-- 太阳 -->
+              <circle cx="280" cy="50" r="18" fill="#F2D98E" opacity="0.25"/>
+              <circle cx="280" cy="50" r="12" fill="#E8C872" opacity="0.4"/>
+              <!-- 太阳光线 -->
+              <g opacity="0.15">
+                <line x1="280" y1="20" x2="280" y2="5" stroke="#E8C872" stroke-width="1"/>
+                <line x1="255" y1="30" x2="245" y2="20" stroke="#E8C872" stroke-width="1"/>
+                <line x1="305" y1="30" x2="315" y2="20" stroke="#E8C872" stroke-width="1"/>
+                <line x1="240" y1="55" x2="225" y2="55" stroke="#E8C872" stroke-width="1"/>
+                <line x1="320" y1="55" x2="335" y2="55" stroke="#E8C872" stroke-width="1"/>
+              </g>
+
+              <!-- 星星 -->
+              <g opacity="0.4">
+                <circle cx="30" cy="25" r="1" fill="#E8C872"/>
+                <circle cx="70" cy="40" r="0.8" fill="#E8C872"/>
+                <circle cx="120" cy="20" r="1.2" fill="#E8C872"/>
+                <circle cx="180" cy="35" r="0.7" fill="#E8C872"/>
+                <circle cx="230" cy="15" r="0.9" fill="#E8C872"/>
+                <circle cx="50" cy="70" r="0.6" fill="#E8C872"/>
+                <circle cx="150" cy="60" r="1" fill="#E8C872"/>
+                <circle cx="320" cy="30" r="0.8" fill="#E8C872"/>
+              </g>
+
+              <!-- 飞鸟 -->
+              <g fill="none" stroke="#E8C872" stroke-width="1" opacity="0.3">
+                <path d="M40,60 Q45,55 50,60 Q55,55 60,60"/>
+                <path d="M100,45 Q103,42 106,45 Q109,42 112,45"/>
+                <path d="M200,70 Q203,67 206,70 Q209,67 212,70"/>
+              </g>
+
+              <!-- 最远山脉层 -->
+              <path d="M0,160
+                       L20,140 L40,155 L65,125 L90,145 L120,110 L150,135 L180,100 L210,125 L245,95 L280,115 L310,90 L343,115
+                       L343,480 L0,480 Z"
+                    fill="url(#farMountain)" opacity="0.5"/>
+
+              <!-- 远山山脊线 -->
+              <path d="M0,160 L20,140 L40,155 L65,125 L90,145 L120,110 L150,135 L180,100 L210,125 L245,95 L280,115 L310,90 L343,115"
+                    fill="none" stroke="#E8C872" stroke-width="0.5" opacity="0.15"/>
+
+              <!-- 中层山脉 -->
+              <path d="M0,230
+                       L15,210 L35,225 L60,190 L85,210 L115,175 L145,200 L180,165 L215,195 L250,160 L285,185 L320,155 L343,180
+                       L343,480 L0,480 Z"
+                    fill="url(#midMountain)" opacity="0.7"/>
+
+              <!-- 中山山脊线 -->
+              <path d="M0,230 L15,210 L35,225 L60,190 L85,210 L115,175 L145,200 L180,165 L215,195 L250,160 L285,185 L320,155 L343,180"
+                    fill="none" stroke="#E8C872" stroke-width="0.8" opacity="0.2"/>
+
+              <!-- 中山山峰装饰 -->
+              <g opacity="0.25" fill="#E8C872">
+                <path d="M115,175 L118,170 L121,175 Z"/>
+                <path d="M180,165 L183,158 L186,165 Z"/>
+                <path d="M250,160 L254,152 L258,160 Z"/>
+              </g>
+
+              <!-- 云雾（中层） -->
+              <ellipse cx="100" cy="200" rx="80" ry="15" fill="url(#fogGradient)" opacity="0.8">
+                <animate attributeName="cx" values="80;120;80" dur="20s" repeatCount="indefinite"/>
+              </ellipse>
+              <ellipse cx="250" cy="180" rx="70" ry="12" fill="url(#fogGradient)" opacity="0.6">
+                <animate attributeName="cx" values="260;230;260" dur="25s" repeatCount="indefinite"/>
+              </ellipse>
+              <ellipse cx="170" cy="150" rx="100" ry="18" fill="url(#fogGradient)" opacity="0.5">
+                <animate attributeName="cx" values="150;190;150" dur="30s" repeatCount="indefinite"/>
+              </ellipse>
+
+              <!-- 近山层 -->
+              <path d="M0,320
+                       L10,305 L30,320 L55,280 L80,300 L110,260 L140,285 L175,245 L210,275 L250,235 L290,265 L325,240 L343,260
+                       L343,480 L0,480 Z"
+                    fill="url(#nearMountain)"/>
+
+              <!-- 近山山脊线 -->
+              <path d="M0,320 L10,305 L30,320 L55,280 L80,300 L110,260 L140,285 L175,245 L210,275 L250,235 L290,265 L325,240 L343,260"
+                    fill="none" stroke="#E8C872" stroke-width="1" opacity="0.25"/>
+
+              <!-- 近山峰顶装饰 -->
+              <g opacity="0.3" fill="#E8C872">
+                <path d="M110,260 L114,252 L118,260 Z"/>
+                <path d="M175,245 L180,235 L185,245 Z"/>
+                <path d="M250,235 L256,224 L262,235 Z"/>
+              </g>
+
+              <!-- 山谷梯田区域 -->
+              <g opacity="0.4">
+                <!-- 左侧梯田 -->
+                <path d="M30,380 Q50,375 70,380 Q90,385 85,400 Q75,410 55,405 Q35,400 30,380 Z"
+                      fill="url(#terraceGrad)" stroke="#E8C872" stroke-width="0.3" opacity="0.3"/>
+                <path d="M40,388 Q60,385 75,390" fill="none" stroke="#E8C872" stroke-width="0.3" opacity="0.3"/>
+                <path d="M45,395 Q62,393 72,397" fill="none" stroke="#E8C872" stroke-width="0.3" opacity="0.3"/>
+                <!-- 右侧梯田 -->
+                <path d="M270,350 Q290,345 310,350 Q320,355 315,370 Q305,380 285,375 Q265,370 270,350 Z"
+                      fill="url(#terraceGrad)" stroke="#E8C872" stroke-width="0.3" opacity="0.3"/>
+                <path d="M280,358 Q298,355 308,358" fill="none" stroke="#E8C872" stroke-width="0.3" opacity="0.3"/>
+                <path d="M285,365 Q300,363 305,366" fill="none" stroke="#E8C872" stroke-width="0.3" opacity="0.3"/>
+                <!-- 中部梯田 -->
+                <path d="M140,420 Q165,415 190,420 Q210,425 200,440 Q185,450 160,445 Q135,440 140,420 Z"
+                      fill="url(#terraceGrad)" stroke="#E8C872" stroke-width="0.3" opacity="0.25"/>
+              </g>
+
+              <!-- 岷江主流 -->
+              <path d="M60,480
+                       Q75,440 95,420
+                       Q115,400 110,370
+                       Q105,340 130,320
+                       Q155,300 150,270
+                       Q145,240 170,220
+                       Q195,200 190,170
+                       Q185,140 210,115"
+                    fill="none" stroke="url(#riverGradient)" stroke-width="12" stroke-linecap="round"/>
+              <!-- 河流高光 -->
+              <path d="M60,480
+                       Q75,440 95,420
+                       Q115,400 110,370
+                       Q105,340 130,320
+                       Q155,300 150,270
+                       Q145,240 170,220
+                       Q195,200 190,170
+                       Q185,140 210,115"
+                    fill="none" stroke="url(#riverShine)" stroke-width="3" stroke-linecap="round" opacity="0.5"/>
+              <!-- 河流波纹虚线 -->
+              <path d="M60,480
+                       Q75,440 95,420
+                       Q115,400 110,370
+                       Q105,340 130,320
+                       Q155,300 150,270
+                       Q145,240 170,220
+                       Q195,200 190,170
+                       Q185,140 210,115"
+                    fill="none" stroke="#E8C872" stroke-width="0.5" stroke-dasharray="3 6" stroke-linecap="round" opacity="0.3"/>
+
+              <!-- 支流1 -->
+              <path d="M280,480
+                       Q270,450 250,430
+                       Q230,410 210,390
+                       Q195,375 180,355"
+                    fill="none" stroke="url(#riverGradient)" stroke-width="5" stroke-linecap="round" opacity="0.6"/>
+              <path d="M280,480
+                       Q270,450 250,430
+                       Q230,410 210,390
+                       Q195,375 180,355"
+                    fill="none" stroke="#E8C872" stroke-width="0.5" stroke-dasharray="2 5" stroke-linecap="round" opacity="0.25"/>
+
+              <!-- 支流2 -->
+              <path d="M343,320
+                       Q320,310 300,295
+                       Q280,280 260,260"
+                    fill="none" stroke="url(#riverGradient)" stroke-width="4" stroke-linecap="round" opacity="0.5"/>
+
+              <!-- 路径线（连接各站点） -->
+              <path d="M65,430
+                       Q90,410 115,395
+                       Q140,380 165,360
+                       Q185,340 205,315
+                       Q225,290 245,265
+                       Q265,240 285,210
+                       Q300,185 295,155
+                       Q290,130 270,110"
+                    fill="none"
+                    stroke="url(#routeGradient)"
+                    stroke-width="1.5"
+                    stroke-dasharray="4 5"
+                    stroke-linecap="round"
+                    opacity="0.6"/>
+              <!-- 路径外发光 -->
+              <path d="M65,430
+                       Q90,410 115,395
+                       Q140,380 165,360
+                       Q185,340 205,315
+                       Q225,290 245,265
+                       Q265,240 285,210
+                       Q300,185 295,155
+                       Q290,130 270,110"
+                    fill="none"
+                    stroke="#C45A3C"
+                    stroke-width="3"
+                    stroke-dasharray="4 5"
+                    stroke-linecap="round"
+                    opacity="0.15"
+                    filter="blur(2px)"/>
+
+              <!-- 前景山脚装饰 -->
+              <path d="M0,400
+                       L20,385 L40,395 L60,380 L80,390 L100,375 L120,388 L140,370 L160,385 L180,365 L200,380 L220,360 L240,378 L260,358 L280,375 L300,355 L320,370 L343,360
+                       L343,480 L0,480 Z"
+                    fill="#1A0D08" opacity="0.8"/>
+
+              <!-- 前景山轮廓 -->
+              <path d="M0,400 L20,385 L40,395 L60,380 L80,390 L100,375 L120,388 L140,370 L160,385 L180,365 L200,380 L220,360 L240,378 L260,358 L280,375 L300,355 L320,370 L343,360"
+                    fill="none" stroke="#E8C872" stroke-width="0.8" opacity="0.3"/>
+
+              <!-- 碉楼（站点附近的特色建筑） -->
+              <!-- 桃坪羌寨碉楼 -->
+              <g transform="translate(50, 410)" opacity="0.8">
+                <rect x="0" y="0" width="16" height="24" fill="#3D2318" stroke="#E8C872" stroke-width="0.5" opacity="0.6"/>
+                <rect x="2" y="-8" width="12" height="10" fill="#4A2C1E" stroke="#E8C872" stroke-width="0.5" opacity="0.6"/>
+                <rect x="4" y="-14" width="8" height="8" fill="#5A3725" stroke="#E8C872" stroke-width="0.5" opacity="0.6"/>
+                <polygon points="4,-14 8,-20 12,-14" fill="#C45A3C" opacity="0.5"/>
+                <!-- 窗户 -->
+                <rect x="6" y="6" width="4" height="6" fill="#E8C872" opacity="0.3"/>
+                <rect x="6" y="16" width="4" height="6" fill="#E8C872" opacity="0.2"/>
+              </g>
+
+              <!-- 甘堡藏寨碉楼 -->
+              <g transform="translate(160, 345)" opacity="0.7">
+                <rect x="0" y="0" width="14" height="20" fill="#3D2318" stroke="#E8C872" stroke-width="0.5" opacity="0.5"/>
+                <rect x="2" y="-6" width="10" height="8" fill="#4A2C1E" stroke="#E8C872" stroke-width="0.5" opacity="0.5"/>
+                <polygon points="2,-6 7,-12 12,-6" fill="#C45A3C" opacity="0.4"/>
+              </g>
+
+              <!-- 萝卜寨碉楼群 -->
+              <g transform="translate(235, 255)" opacity="0.7">
+                <rect x="0" y="0" width="12" height="18" fill="#3D2318" stroke="#E8C872" stroke-width="0.5" opacity="0.5"/>
+                <rect x="-8" y="4" width="10" height="14" fill="#4A2C1E" stroke="#E8C872" stroke-width="0.5" opacity="0.4"/>
+                <polygon points="0,0 6,-5 12,0" fill="#C45A3C" opacity="0.4"/>
+              </g>
+
+              <!-- 羌人谷碉楼 -->
+              <g transform="translate(260, 100)" opacity="0.6">
+                <rect x="0" y="0" width="18" height="28" fill="#3D2318" stroke="#E8C872" stroke-width="0.5" opacity="0.5"/>
+                <rect x="3" y="-10" width="12" height="12" fill="#4A2C1E" stroke="#E8C872" stroke-width="0.5" opacity="0.5"/>
+                <rect x="5" y="-18" width="8" height="10" fill="#5A3725" stroke="#E8C872" stroke-width="0.5" opacity="0.5"/>
+                <polygon points="5,-18 9,-25 13,-18" fill="#C45A3C" opacity="0.5"/>
+              </g>
+
+              <!-- 村落符号（小房子集群） -->
+              <g fill="#3D2318" stroke="#E8C872" stroke-width="0.3" opacity="0.5">
+                <!-- 茂县村落 -->
+                <rect x="40" y="445" width="5" height="4"/>
+                <polygon points="40,445 42.5,442 45,445"/>
+                <rect x="48" y="443" width="4" height="6"/>
+                <polygon points="48,443 50,440 52,443"/>
+                <rect x="55" y="446" width="5" height="3"/>
+                <polygon points="55,446 57.5,444 60,446"/>
+              </g>
+
+              <!-- 树木装饰 -->
+              <g fill="#2A4A2A" opacity="0.3">
+                <!-- 左侧树群 -->
+                <ellipse cx="20" cy="450" rx="4" ry="6"/>
+                <ellipse cx="28" cy="448" rx="3" ry="5"/>
+                <ellipse cx="15" cy="455" rx="3" ry="4"/>
+                <!-- 右侧树群 -->
+                <ellipse cx="320" cy="420" rx="4" ry="6"/>
+                <ellipse cx="328" cy="418" rx="3" ry="5"/>
+                <!-- 中部树 -->
+                <ellipse cx="200" cy="380" rx="3" ry="4"/>
+                <ellipse cx="210" cy="385" rx="2" ry="3"/>
+              </g>
+
+              <!-- 牦牛（羌山标志性动物） -->
+              <g transform="translate(85, 440)" opacity="0.7">
+                <!-- 牦牛身体 -->
+                <ellipse cx="15" cy="10" rx="14" ry="7" fill="#2C1810" stroke="#E8C872" stroke-width="0.5"/>
+                <!-- 牦牛腿 -->
+                <rect x="5" y="14" width="3" height="8" fill="#2C1810" stroke="#E8C872" stroke-width="0.3"/>
+                <rect x="12" y="15" width="3" height="7" fill="#2C1810" stroke="#E8C872" stroke-width="0.3"/>
+                <rect x="18" y="15" width="3" height="7" fill="#2C1810" stroke="#E8C872" stroke-width="0.3"/>
+                <rect x="24" y="14" width="3" height="8" fill="#2C1810" stroke="#E8C872" stroke-width="0.3"/>
+                <!-- 牦牛头 -->
+                <ellipse cx="28" cy="6" rx="6" ry="5" fill="#2C1810" stroke="#E8C872" stroke-width="0.5"/>
+                <!-- 牛角 -->
+                <path d="M25,2 Q22,-2 20,1" fill="none" stroke="#E8C872" stroke-width="0.8"/>
+                <path d="M31,2 Q34,-2 36,1" fill="none" stroke="#E8C872" stroke-width="0.8"/>
+                <!-- 尾巴 -->
+                <path d="M1,8 Q-2,10 0,13" fill="none" stroke="#2C1810" stroke-width="1.5"/>
+              </g>
+
+              <!-- 小牦牛 -->
+              <g transform="translate(280, 395)" opacity="0.6">
+                <ellipse cx="8" cy="6" rx="8" ry="4" fill="#2C1810" stroke="#E8C872" stroke-width="0.3"/>
+                <rect x="2" y="8" width="2" height="5" fill="#2C1810"/>
+                <rect x="6" y="9" width="2" height="4" fill="#2C1810"/>
+                <rect x="10" y="9" width="2" height="4" fill="#2C1810"/>
+                <rect x="14" y="8" width="2" height="5" fill="#2C1810"/>
+                <ellipse cx="15" cy="4" rx="3.5" ry="3" fill="#2C1810" stroke="#E8C872" stroke-width="0.3"/>
+                <path d="M13,1 Q11,-1 10,1" fill="none" stroke="#E8C872" stroke-width="0.5"/>
+                <path d="M17,1 Q19,-1 20,1" fill="none" stroke="#E8C872" stroke-width="0.5"/>
+              </g>
+
+              <!-- 绵羊群（羌族人养羊） -->
+              <g transform="translate(210, 350)" opacity="0.65">
+                <!-- 羊1 -->
+                <ellipse cx="0" cy="8" rx="7" ry="5" fill="#F5E6D3" stroke="#E8C872" stroke-width="0.4"/>
+                <ellipse cx="-2" cy="9" rx="2" ry="2" fill="#F5E6D3" stroke="#E8C872" stroke-width="0.3"/>
+                <ellipse cx="6" cy="9" rx="2" ry="2" fill="#F5E6D3" stroke="#E8C872" stroke-width="0.3"/>
+                <circle cx="6" cy="3" r="3" fill="#F5E6D3" stroke="#E8C872" stroke-width="0.4"/>
+                <rect x="-5" y="11" width="1.5" height="4" fill="#2C1810"/>
+                <rect x="-1" y="12" width="1.5" height="3" fill="#2C1810"/>
+                <rect x="3" y="12" width="1.5" height="3" fill="#2C1810"/>
+                <rect x="6" y="11" width="1.5" height="4" fill="#2C1810"/>
+                <!-- 羊角 -->
+                <path d="M4,1 Q2,-2 1,0" fill="none" stroke="#C9A94E" stroke-width="0.6"/>
+                <path d="M8,1 Q10,-2 11,0" fill="none" stroke="#C9A94E" stroke-width="0.6"/>
+              </g>
+              <g transform="translate(225, 355)" opacity="0.55">
+                <ellipse cx="0" cy="6" rx="5" ry="3.5" fill="#F5E6D3" stroke="#E8C872" stroke-width="0.3"/>
+                <circle cx="4" cy="2" r="2.2" fill="#F5E6D3" stroke="#E8C872" stroke-width="0.3"/>
+                <rect x="-4" y="8" width="1" height="3" fill="#2C1810"/>
+                <rect x="3" y="8" width="1" height="3" fill="#2C1810"/>
+              </g>
+
+              <!-- 羌族人物（释比/老人） -->
+              <g transform="translate(130, 435)" opacity="0.7">
+                <!-- 身体/袍子 -->
+                <path d="M0,20 L0,8 Q0,0 8,0 Q16,0 16,8 L16,20 Z" fill="#C45A3C" stroke="#E8C872" stroke-width="0.4"/>
+                <!-- 腰带 -->
+                <rect x="0" y="12" width="16" height="2" fill="#E8C872" opacity="0.5"/>
+                <!-- 头 -->
+                <circle cx="8" cy="-3" r="5" fill="#F5E6D3" stroke="#E8C872" stroke-width="0.3"/>
+                <!-- 帽子/头巾 -->
+                <path d="M2,-4 Q8,-10 14,-4 L14,-2 L2,-2 Z" fill="#2C1810" stroke="#E8C872" stroke-width="0.3"/>
+                <!-- 手杖 -->
+                <line x1="-2" y1="5" x2="-2" y2="22" stroke="#5A3725" stroke-width="1.5"/>
+                <circle cx="-2" cy="4" r="1.5" fill="#E8C872" opacity="0.6"/>
+              </g>
+
+              <!-- 羌族人物（少女） -->
+              <g transform="translate(195, 415)" opacity="0.65">
+                <!-- 长裙 -->
+                <path d="M0,22 L2,8 Q4,4 8,4 Q12,4 14,8 L16,22 Z" fill="#A04830" stroke="#E8C872" stroke-width="0.3"/>
+                <!-- 上衣 -->
+                <path d="M2,8 Q2,3 8,3 Q14,3 14,8 L14,12 L2,12 Z" fill="#C45A3C" stroke="#E8C872" stroke-width="0.3"/>
+                <!-- 头 -->
+                <circle cx="8" cy="-1" r="4" fill="#F5E6D3" stroke="#E8C872" stroke-width="0.3"/>
+                <!-- 头饰/头帕 -->
+                <ellipse cx="8" cy="-4" rx="5" ry="2" fill="#2C1810" stroke="#E8C872" stroke-width="0.3"/>
+                <!-- 刺绣花纹装饰 -->
+                <circle cx="8" cy="-5" r="0.8" fill="#E8C872" opacity="0.7"/>
+              </g>
+
+              <!-- 松树群（近景） -->
+              <g opacity="0.6">
+                <!-- 大松树1 -->
+                <g transform="translate(30, 430)">
+                  <rect x="3" y="12" width="2" height="8" fill="#3D2318"/>
+                  <polygon points="4,-2 0,8 8,8" fill="#2A4A2A" stroke="#E8C872" stroke-width="0.3"/>
+                  <polygon points="4,2 -1,10 9,10" fill="#1F3A1F" stroke="#E8C872" stroke-width="0.3"/>
+                </g>
+                <!-- 大松树2 -->
+                <g transform="translate(310, 385)">
+                  <rect x="2.5" y="10" width="2" height="7" fill="#3D2318"/>
+                  <polygon points="3.5,0 0,7 7,7" fill="#2A4A2A" stroke="#E8C872" stroke-width="0.3"/>
+                  <polygon points="3.5,3 -0.5,9 7.5,9" fill="#1F3A1F" stroke="#E8C872" stroke-width="0.3"/>
+                </g>
+                <!-- 小松树 -->
+                <g transform="translate(245, 300)">
+                  <rect x="1.5" y="6" width="1.5" height="5" fill="#3D2318"/>
+                  <polygon points="2.2,0 0,5 4.5,5" fill="#2A4A2A" stroke="#E8C872" stroke-width="0.2"/>
+                </g>
+                <g transform="translate(100, 370)">
+                  <rect x="1.5" y="7" width="1.5" height="5" fill="#3D2318"/>
+                  <polygon points="2.2,1 0,6 4.5,6" fill="#2A4A2A" stroke="#E8C872" stroke-width="0.2"/>
+                </g>
+              </g>
+
+              <!-- 经幡/祈祷旗 -->
+              <g transform="translate(265, 125)" opacity="0.6">
+                <line x1="0" y1="0" x2="30" y2="10" stroke="#E8C872" stroke-width="0.3"/>
+                <rect x="2" y="0" width="5" height="7" fill="#C45A3C" opacity="0.7"/>
+                <rect x="9" y="3" width="5" height="7" fill="#E8C872" opacity="0.6"/>
+                <rect x="16" y="5" width="5" height="7" fill="#4A7C59" opacity="0.6"/>
+                <rect x="23" y="8" width="5" height="7" fill="#5B8DB8" opacity="0.6"/>
+              </g>
+
+              <!-- 转经筒 -->
+              <g transform="translate(155, 330)" opacity="0.5">
+                <rect x="3" y="0" width="2" height="10" fill="#5A3725"/>
+                <ellipse cx="4" cy="-2" rx="5" ry="6" fill="#C9A94E" stroke="#E8C872" stroke-width="0.3"/>
+                <line x1="4" y1="-7" x2="4" y2="3" stroke="#2C1810" stroke-width="0.3"/>
+              </g>
+
+              <!-- 飘动的云雾（最前景） -->
+              <ellipse cx="80" cy="380" rx="60" ry="12" fill="url(#fogGradient)" opacity="0.4">
+                <animate attributeName="cx" values="60;100;60" dur="15s" repeatCount="indefinite"/>
+              </ellipse>
+              <ellipse cx="280" cy="320" rx="50" ry="10" fill="url(#fogGradient)" opacity="0.3">
+                <animate attributeName="cx" values="290;260;290" dur="18s" repeatCount="indefinite"/>
+              </ellipse>
+              <ellipse cx="160" cy="420" rx="80" ry="14" fill="url(#fogGradient)" opacity="0.25">
+                <animate attributeName="cx" values="140;180;140" dur="22s" repeatCount="indefinite"/>
+              </ellipse>
+
+              <!-- 飘落的花瓣/雪花装饰 -->
+              <g fill="#E8C872" opacity="0.3">
+                <circle cx="50" cy="100" r="1">
+                  <animate attributeName="cy" values="100;120;100" dur="4s" repeatCount="indefinite"/>
+                  <animate attributeName="opacity" values="0.3;0.6;0.3" dur="4s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="180" cy="80" r="0.8">
+                  <animate attributeName="cy" values="80;100;80" dur="5s" repeatCount="indefinite"/>
+                  <animate attributeName="opacity" values="0.2;0.5;0.2" dur="5s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="300" cy="120" r="1.2">
+                  <animate attributeName="cy" values="120;140;120" dur="3.5s" repeatCount="indefinite"/>
+                  <animate attributeName="opacity" values="0.25;0.55;0.25" dur="3.5s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="120" cy="150" r="0.7">
+                  <animate attributeName="cy" values="150;165;150" dur="4.5s" repeatCount="indefinite"/>
+                </circle>
+                <circle cx="250" cy="90" r="0.9">
+                  <animate attributeName="cy" values="90;108;90" dur="3.8s" repeatCount="indefinite"/>
+                </circle>
+              </g>
+            </svg>
+
+            <!-- 站点 1 - 茂县 (起点) - 当前站 -->
+            <div class="map-point current" style="top: 90%; left: 19%;" data-station="1">
+              <div class="map-point-marker">
+                <div class="map-point-inner">
+                  <span class="map-point-num">1</span>
+                  <svg class="map-point-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="map-point-label">茂 县</div>
+            </div>
+
+            <!-- 站点 2 - 甘堡藏寨 - 未解锁 -->
+            <div class="map-point locked" style="top: 72%; left: 48%;" data-station="2">
+              <div class="map-point-marker">
+                <div class="map-point-inner">
+                  <span class="map-point-num">2</span>
+                  <svg class="map-point-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="map-point-label">甘堡藏寨</div>
+            </div>
+
+            <!-- 站点 3 - 萝卜寨 - 未解锁 -->
+            <div class="map-point locked" style="top: 54%; left: 70%;" data-station="3">
+              <div class="map-point-marker">
+                <div class="map-point-inner">
+                  <span class="map-point-num">3</span>
+                  <svg class="map-point-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="map-point-label">萝卜寨</div>
+            </div>
+
+            <!-- 站点 4 - 羌族博物馆 - 未解锁 -->
+            <div class="map-point locked" style="top: 42%; left: 60%;" data-station="4">
+              <div class="map-point-marker">
+                <div class="map-point-inner">
+                  <span class="map-point-num">4</span>
+                  <svg class="map-point-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="map-point-label">羌族博物馆</div>
+            </div>
+
+            <!-- 站点 5 - 曲谷乡 - 未解锁 -->
+            <div class="map-point locked" style="top: 33%; left: 78%;" data-station="5">
+              <div class="map-point-marker">
+                <div class="map-point-inner">
+                  <span class="map-point-num">5</span>
+                  <svg class="map-point-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="map-point-label">曲谷乡</div>
+            </div>
+
+            <!-- 站点 6 - 羌人谷 - 终点 - 未解锁 -->
+            <div class="map-point locked" style="top: 22%; left: 78%;" data-station="6">
+              <div class="map-point-marker">
+                <div class="map-point-inner">
+                  <span class="map-point-num">6</span>
+                  <svg class="map-point-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/>
+                  </svg>
+                </div>
+              </div>
+              <div class="map-point-label">羌人谷</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 图例 -->
+        <div class="map-legend">
+          <div class="legend-item">
+            <span class="legend-dot completed"></span>
+            <span>已打卡</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot current"></span>
+            <span>当前站</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot locked"></span>
+            <span>待解锁</span>
+          </div>
+        </div>
+      </section>
+        </div><!-- /map-left -->
+
+      <!-- 当前站点信息 -->
+        <div class="map-right">
+          <!-- 站点风情图 -->
+          <div class="station-scenery" id="stationScenery">
+            <img class="station-photo" id="stationPhoto" src="../assets/scenery-maoxian.jpg" alt="站点实拍风情图">
+            <svg class="scenery-svg" viewBox="0 0 400 180" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="scenerySky" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#2C1810"/>
+                  <stop offset="100%" style="stop-color:#4A2C1E"/>
+                </linearGradient>
+                <linearGradient id="sceneryMountain" x1="0%" y1="0%" x2="0%" y2="100%">
+                  <stop offset="0%" style="stop-color:#5A3725"/>
+                  <stop offset="100%" style="stop-color:#3D2318"/>
+                </linearGradient>
+              </defs>
+              <!-- 天空 -->
+              <rect width="400" height="180" fill="url(#scenerySky)"/>
+              <!-- 太阳/月亮 -->
+              <circle cx="340" cy="40" r="20" fill="#E8C872" opacity="0.3"/>
+              <circle cx="340" cy="40" r="12" fill="#F2D98E" opacity="0.5"/>
+              <!-- 远山 -->
+              <path d="M0,100 L40,80 L80,95 L120,70 L160,90 L200,65 L240,85 L280,60 L320,80 L360,70 L400,90 L400,180 L0,180 Z"
+                    fill="#5A3725" opacity="0.4"/>
+              <!-- 近山 -->
+              <path d="M0,130 L30,115 L60,125 L90,110 L120,120 L150,105 L180,118 L210,100 L240,115 L270,105 L300,120 L330,110 L360,125 L400,115 L400,180 L0,180 Z"
+                    fill="url(#sceneryMountain)"/>
+              <!-- 古羌城碉楼群（茂县） -->
+              <g id="scene-1">
+              <g transform="translate(130, 70)">
+                <!-- 主碉楼 -->
+                <rect x="30" y="20" width="25" height="60" fill="#3D2318" stroke="#E8C872" stroke-width="0.8" opacity="0.9"/>
+                <rect x="34" y="5" width="17" height="20" fill="#4A2C1E" stroke="#E8C872" stroke-width="0.8" opacity="0.9"/>
+                <rect x="37" y="-8" width="11" height="16" fill="#5A3725" stroke="#E8C872" stroke-width="0.8" opacity="0.9"/>
+                <polygon points="37,-8 42.5,-16 48,-8" fill="#C45A3C" opacity="0.7"/>
+                <!-- 碉楼窗户 -->
+                <rect x="39" y="35" width="7" height="10" fill="#E8C872" opacity="0.4"/>
+                <rect x="39" y="55" width="7" height="10" fill="#E8C872" opacity="0.3"/>
+                <!-- 左侧碉楼 -->
+                <rect x="0" y="35" width="20" height="45" fill="#3D2318" stroke="#E8C872" stroke-width="0.6" opacity="0.8"/>
+                <rect x="3" y="22" width="14" height="16" fill="#4A2C1E" stroke="#E8C872" stroke-width="0.6" opacity="0.8"/>
+                <polygon points="3,22 10,14 17,22" fill="#C45A3C" opacity="0.6"/>
+                <!-- 右侧碉楼 -->
+                <rect x="65" y="30" width="22" height="50" fill="#3D2318" stroke="#E8C872" stroke-width="0.6" opacity="0.8"/>
+                <rect x="68" y="17" width="16" height="17" fill="#4A2C1E" stroke="#E8C872" stroke-width="0.6" opacity="0.8"/>
+                <polygon points="68,17 76,8 84,17" fill="#C45A3C" opacity="0.6"/>
+                <!-- 城墙 -->
+                <rect x="-5" y="75" width="100" height="8" fill="#5A3725" stroke="#E8C872" stroke-width="0.5" opacity="0.7"/>
+              </g>
+              <!-- 萨朗舞者 -->
+              <g transform="translate(50, 130)" opacity="0.8">
+                <circle cx="10" cy="0" r="5" fill="#F5E6D3"/>
+                <path d="M3,5 L17,5 L20,25 L0,25 Z" fill="#C45A3C"/>
+                <path d="M0,25 L-5,40 L25,40 L20,25" fill="#A04830"/>
+                <!-- 舞动的手 -->
+                <path d="M3,8 Q-5,5 -8,12" fill="none" stroke="#F5E6D3" stroke-width="2" stroke-linecap="round"/>
+                <path d="M17,8 Q25,5 28,12" fill="none" stroke="#F5E6D3" stroke-width="2" stroke-linecap="round"/>
+              </g>
+              <g transform="translate(80, 135)" opacity="0.7">
+                <circle cx="8" cy="0" r="4" fill="#F5E6D3"/>
+                <path d="M2,4 L14,4 L17,20 L-1,20 Z" fill="#D97560"/>
+                <path d="M-1,20 L-5,32 L19,32 L15,20" fill="#C45A3C"/>
+              </g>
+              <g transform="translate(300, 135)" opacity="0.7">
+                <circle cx="8" cy="0" r="4" fill="#F5E6D3"/>
+                <path d="M2,4 L14,4 L17,20 L-1,20 Z" fill="#C45A3C"/>
+                <path d="M-1,20 L-5,32 L19,32 L15,20" fill="#A04830"/>
+              </g>
+              <!-- 篝火 -->
+              <g transform="translate(180, 145)" opacity="0.8">
+                <ellipse cx="15" cy="25" rx="20" ry="5" fill="#2C1810"/>
+                <path d="M10,25 Q5,15 15,5 Q25,15 20,25" fill="#E8C872" opacity="0.8">
+                  <animate attributeName="d" values="M10,25 Q5,15 15,5 Q25,15 20,25;M10,25 Q7,12 15,3 Q23,13 20,25;M10,25 Q5,15 15,5 Q25,15 20,25" dur="1.5s" repeatCount="indefinite"/>
+                </path>
+                <path d="M12,25 Q10,18 15,10 Q20,18 18,25" fill="#D97560" opacity="0.7">
+                  <animate attributeName="d" values="M12,25 Q10,18 15,10 Q20,18 18,25;M12,25 Q11,16 15,8 Q19,17 18,25;M12,25 Q10,18 15,10 Q20,18 18,25" dur="1.2s" repeatCount="indefinite"/>
+                </path>
+              </g>
+              </g>
+
+              <!-- 甘堡藏寨场景 -->
+              <g id="scene-2" style="display:none">
+                <!-- 藏式碉楼 -->
+                <g transform="translate(140, 60)">
+                  <rect x="25" y="25" width="30" height="65" fill="#5A3725" stroke="#E8C872" stroke-width="0.8" opacity="0.9"/>
+                  <rect x="30" y="10" width="20" height="18" fill="#6B4530" stroke="#E8C872" stroke-width="0.8" opacity="0.9"/>
+                  <rect x="33" y="0" width="14" height="13" fill="#7A5240" stroke="#E8C872" stroke-width="0.6" opacity="0.8"/>
+                  <!-- 藏式屋顶经幡 -->
+                  <line x1="40" y1="0" x2="40" y2="-15" stroke="#E8C872" stroke-width="1"/>
+                  <rect x="36" y="-15" width="3" height="8" fill="#C45A3C"/>
+                  <rect x="40" y="-15" width="3" height="8" fill="#E8C872"/>
+                  <rect x="44" y="-15" width="3" height="8" fill="#6B8E5A"/>
+                  <!-- 窗户 -->
+                  <rect x="36" y="40" width="8" height="12" fill="#E8C872" opacity="0.3"/>
+                  <rect x="36" y="60" width="8" height="12" fill="#E8C872" opacity="0.2"/>
+                  <!-- 两侧藏屋 -->
+                  <rect x="-5" y="45" width="25" height="45" fill="#4A2C1E" stroke="#E8C872" stroke-width="0.6" opacity="0.8"/>
+                  <polygon points="-5,45 7.5,32 20,45" fill="#5A3725" stroke="#E8C872" stroke-width="0.6" opacity="0.8"/>
+                  <rect x="60" y="40" width="28" height="50" fill="#4A2C1E" stroke="#E8C872" stroke-width="0.6" opacity="0.8"/>
+                  <polygon points="60,40 74,26 88,40" fill="#5A3725" stroke="#E8C872" stroke-width="0.6" opacity="0.8"/>
+                </g>
+                <!-- 锅庄舞者（围成圈） -->
+                <g transform="translate(60, 135)" opacity="0.75">
+                  <circle cx="8" cy="0" r="4" fill="#F5E6D3"/>
+                  <path d="M2,4 L14,4 L16,18 L0,18 Z" fill="#7C4B2A"/>
+                  <path d="M0,18 L-3,28 L19,28 L16,18" fill="#5A3725"/>
+                  <path d="M2,6 Q-3,3 -6,10" fill="none" stroke="#F5E6D3" stroke-width="1.5" stroke-linecap="round"/>
+                </g>
+                <g transform="translate(310, 135)" opacity="0.75">
+                  <circle cx="8" cy="0" r="4" fill="#F5E6D3"/>
+                  <path d="M2,4 L14,4 L16,18 L0,18 Z" fill="#8B5A2B"/>
+                  <path d="M0,18 L-3,28 L19,28 L16,18" fill="#6B4530"/>
+                </g>
+                <!-- 经幡柱 -->
+                <g transform="translate(30, 70)" opacity="0.7">
+                  <line x1="10" y1="0" x2="10" y2="70" stroke="#E8C872" stroke-width="1"/>
+                  <polygon points="10,0 15,5 10,8 5,5" fill="#C45A3C"/>
+                  <rect x="12" y="10" width="20" height="4" fill="#C45A3C" opacity="0.7"/>
+                  <rect x="12" y="16" width="20" height="4" fill="#E8C872" opacity="0.6"/>
+                  <rect x="12" y="22" width="20" height="4" fill="#6B8E5A" opacity="0.6"/>
+                  <rect x="12" y="28" width="20" height="4" fill="#5A7A9A" opacity="0.6"/>
+                  <rect x="12" y="34" width="20" height="4" fill="#FFFFFF" opacity="0.4"/>
+                </g>
+                <g transform="translate(360, 80)" opacity="0.6">
+                  <line x1="10" y1="0" x2="10" y2="60" stroke="#E8C872" stroke-width="0.8"/>
+                  <polygon points="10,0 14,4 10,7 6,4" fill="#C45A3C"/>
+                  <rect x="12" y="8" width="18" height="3" fill="#C45A3C" opacity="0.6"/>
+                  <rect x="12" y="13" width="18" height="3" fill="#E8C872" opacity="0.5"/>
+                  <rect x="12" y="18" width="18" height="3" fill="#6B8E5A" opacity="0.5"/>
+                </g>
+              </g>
+
+              <!-- 萝卜寨场景 -->
+              <g id="scene-3" style="display:none">
+                <!-- 云朵装饰 -->
+                <ellipse cx="60" cy="30" rx="40" ry="12" fill="#E8C872" opacity="0.1">
+                  <animate attributeName="cx" values="40;80;40" dur="20s" repeatCount="indefinite"/>
+                </ellipse>
+                <ellipse cx="320" cy="25" rx="50" ry="14" fill="#E8C872" opacity="0.08">
+                  <animate attributeName="cx" values="350;290;350" dur="25s" repeatCount="indefinite"/>
+                </ellipse>
+                <ellipse cx="200" cy="15" rx="35" ry="10" fill="#F5E6D3" opacity="0.06">
+                  <animate attributeName="cx" values="180;220;180" dur="18s" repeatCount="indefinite"/>
+                </ellipse>
+                <!-- 黄泥羌寨（层层叠叠） -->
+                <g transform="translate(100, 55)">
+                  <!-- 最高层房屋 -->
+                  <rect x="70" y="0" width="20" height="25" fill="#C49A6C" stroke="#E8C872" stroke-width="0.5" opacity="0.9"/>
+                  <polygon points="70,0 80,-10 90,0" fill="#A07850" stroke="#E8C872" stroke-width="0.5" opacity="0.8"/>
+                  <rect x="76" y="8" width="8" height="10" fill="#5A3725" opacity="0.5"/>
+                  <!-- 中层房屋群 -->
+                  <rect x="40" y="25" width="25" height="30" fill="#B0885C" stroke="#E8C872" stroke-width="0.5" opacity="0.85"/>
+                  <polygon points="40,25 52.5,15 65,25" fill="#907050" stroke="#E8C872" stroke-width="0.5" opacity="0.8"/>
+                  <rect x="95" y="20" width="28" height="35" fill="#B0885C" stroke="#E8C872" stroke-width="0.5" opacity="0.85"/>
+                  <polygon points="95,20 109,8 123,20" fill="#907050" stroke="#E8C872" stroke-width="0.5" opacity="0.8"/>
+                  <rect x="46" y="35" width="6" height="10" fill="#5A3725" opacity="0.4"/>
+                  <rect x="103" y="32" width="6" height="10" fill="#5A3725" opacity="0.4"/>
+                  <!-- 底层房屋群 -->
+                  <rect x="10" y="55" width="30" height="35" fill="#A07850" stroke="#E8C872" stroke-width="0.5" opacity="0.8"/>
+                  <polygon points="10,55 25,42 40,55" fill="#806040" stroke="#E8C872" stroke-width="0.5" opacity="0.7"/>
+                  <rect x="45" y="55" width="28" height="35" fill="#A07850" stroke="#E8C872" stroke-width="0.5" opacity="0.8"/>
+                  <polygon points="45,55 59,42 73,55" fill="#806040" stroke="#E8C872" stroke-width="0.5" opacity="0.7"/>
+                  <rect x="80" y="55" width="25" height="35" fill="#A07850" stroke="#E8C872" stroke-width="0.5" opacity="0.8"/>
+                  <polygon points="80,55 92.5,42 105,55" fill="#806040" stroke="#E8C872" stroke-width="0.5" opacity="0.7"/>
+                  <rect x="110" y="55" width="30" height="35" fill="#A07850" stroke="#E8C872" stroke-width="0.5" opacity="0.8"/>
+                  <polygon points="110,55 125,42 140,55" fill="#806040" stroke="#E8C872" stroke-width="0.5" opacity="0.7"/>
+                  <!-- 石阶路 -->
+                  <path d="M65,90 L70,85 L75,90 L80,85 L85,90 L90,85 L95,90" fill="none" stroke="#E8C872" stroke-width="0.5" opacity="0.4"/>
+                </g>
+                <!-- 羌族少女 -->
+                <g transform="translate(40, 130)" opacity="0.8">
+                  <circle cx="8" cy="0" r="5" fill="#F5E6D3"/>
+                  <!-- 头帕 -->
+                  <path d="M0,-2 L16,-2 L14,-8 L2,-8 Z" fill="#C45A3C"/>
+                  <path d="M2,4 L14,4 L18,25 L-2,25 Z" fill="#6B8E5A"/>
+                  <path d="M-2,25 L-6,40 L22,40 L18,25" fill="#5A7A4A"/>
+                  <!-- 刺绣花纹 -->
+                  <circle cx="8" cy="14" r="2" fill="#E8C872" opacity="0.6"/>
+                </g>
+                <g transform="translate(320, 138)" opacity="0.7">
+                  <circle cx="7" cy="0" r="4" fill="#F5E6D3"/>
+                  <path d="M0,-1 L14,-1 L12,-6 L2,-6 Z" fill="#D97560"/>
+                  <path d="M1,3 L13,3 L16,20 L-2,20 Z" fill="#7C9A6A"/>
+                </g>
+              </g>
+
+              <!-- 羌族博物馆场景 -->
+              <g id="scene-4" style="display:none">
+                <!-- 博物馆建筑 -->
+                <g transform="translate(120, 60)">
+                  <!-- 主体建筑 -->
+                  <rect x="20" y="30" width="100" height="60" fill="#4A2C1E" stroke="#E8C872" stroke-width="0.8" opacity="0.9"/>
+                  <!-- 羌式屋顶 -->
+                  <polygon points="10,30 70,0 130,30" fill="#5A3725" stroke="#E8C872" stroke-width="0.8" opacity="0.9"/>
+                  <polygon points="20,30 70,10 120,30" fill="#6B4530" opacity="0.5"/>
+                  <!-- 大门 -->
+                  <rect x="60" y="55" width="20" height="35" fill="#2C1810" stroke="#E8C872" stroke-width="0.6"/>
+                  <circle cx="75" cy="72" r="1.5" fill="#E8C872" opacity="0.6"/>
+                  <!-- 窗户 -->
+                  <rect x="30" y="50" width="15" height="12" fill="#E8C872" opacity="0.2" stroke="#E8C872" stroke-width="0.4"/>
+                  <rect x="95" y="50" width="15" height="12" fill="#E8C872" opacity="0.2" stroke="#E8C872" stroke-width="0.4"/>
+                  <rect x="30" y="68" width="15" height="12" fill="#E8C872" opacity="0.15" stroke="#E8C872" stroke-width="0.4"/>
+                  <rect x="95" y="68" width="15" height="12" fill="#E8C872" opacity="0.15" stroke="#E8C872" stroke-width="0.4"/>
+                  <!-- 台阶 -->
+                  <rect x="50" y="90" width="40" height="5" fill="#5A3725" opacity="0.6"/>
+                  <rect x="45" y="85" width="50" height="5" fill="#6B4530" opacity="0.5"/>
+                </g>
+                <!-- 展示文物（陶罐） -->
+                <g transform="translate(50, 125)" opacity="0.7">
+                  <ellipse cx="15" cy="20" rx="12" ry="4" fill="#3D2318"/>
+                  <path d="M3,20 Q0,10 15,5 Q30,10 27,20" fill="#8B5A2B" stroke="#E8C872" stroke-width="0.5"/>
+                  <ellipse cx="15" cy="6" rx="8" ry="2" fill="#A07850"/>
+                  <!-- 陶罐纹饰 -->
+                  <path d="M6,14 Q15,12 24,14" fill="none" stroke="#E8C872" stroke-width="0.5" opacity="0.5"/>
+                  <path d="M8,17 Q15,15 22,17" fill="none" stroke="#C45A3C" stroke-width="0.5" opacity="0.4"/>
+                </g>
+                <!-- 羌笛 -->
+                <g transform="translate(320, 120)" opacity="0.7">
+                  <rect x="0" y="0" width="3" height="40" fill="#6B8E5A" transform="rotate(-20 1.5 20)"/>
+                  <rect x="8" y="0" width="3" height="40" fill="#6B8E5A" transform="rotate(-20 9.5 20)"/>
+                  <rect x="-2" y="0" width="15" height="8" fill="#C45A3C" transform="rotate(-20 5.5 4)"/>
+                </g>
+                <!-- 参观者 -->
+                <g transform="translate(290, 135)" opacity="0.6">
+                  <circle cx="6" cy="0" r="4" fill="#F5E6D3"/>
+                  <rect x="2" y="4" width="8" height="18" rx="2" fill="#5A7A9A"/>
+                  <rect x="3" y="22" width="3" height="10" fill="#3D2318"/>
+                  <rect x="6" y="22" width="3" height="10" fill="#3D2318"/>
+                </g>
+              </g>
+
+              <!-- 曲谷乡场景 -->
+              <g id="scene-5" style="display:none">
+                <!-- 深山峡谷效果 -->
+                <path d="M0,50 L60,30 L100,60 L0,80 Z" fill="#2C1810" opacity="0.5"/>
+                <path d="M400,45 L340,25 L300,55 L400,75 Z" fill="#2C1810" opacity="0.5"/>
+                <!-- 神树林 -->
+                <g transform="translate(40, 90)" opacity="0.8">
+                  <rect x="8" y="25" width="4" height="25" fill="#4A2C1E"/>
+                  <polygon points="10,0 0,25 20,25" fill="#3D5A2D"/>
+                  <polygon points="10,10 2,28 18,28" fill="#2D4A1D"/>
+                </g>
+                <g transform="translate(25, 100)" opacity="0.7">
+                  <rect x="5" y="20" width="3" height="20" fill="#3D2318"/>
+                  <polygon points="6.5,0 0,20 13,20" fill="#3D5A2D" opacity="0.8"/>
+                </g>
+                <g transform="translate(55, 95)" opacity="0.6">
+                  <rect x="4" y="22" width="3" height="22" fill="#4A2C1E"/>
+                  <polygon points="5.5,2 0,22 11,22" fill="#3D5A2D" opacity="0.7"/>
+                </g>
+                <g transform="translate(330, 95)" opacity="0.7">
+                  <rect x="7" y="20" width="4" height="30" fill="#4A2C1E"/>
+                  <polygon points="9,0 -2,20 20,20" fill="#3D5A2D"/>
+                  <polygon points="9,8 1,25 17,25" fill="#2D4A1D"/>
+                </g>
+                <g transform="translate(360, 102)" opacity="0.6">
+                  <rect x="4" y="18" width="3" height="22" fill="#3D2318"/>
+                  <polygon points="5.5,0 0,18 11,18" fill="#3D5A2D" opacity="0.8"/>
+                </g>
+                <!-- 释比作法 -->
+                <g transform="translate(170, 100)" opacity="0.9">
+                  <!-- 释比老人 -->
+                  <circle cx="15" cy="0" r="6" fill="#F5E6D3"/>
+                  <!-- 猴头帽 -->
+                  <path d="M7,-8 Q15,-16 23,-8 L22,-2 L8,-2 Z" fill="#8B5A2B"/>
+                  <circle cx="11" cy="-6" r="1.5" fill="#2C1810"/>
+                  <circle cx="19" cy="-6" r="1.5" fill="#2C1810"/>
+                  <!-- 法衣 -->
+                  <path d="M5,6 L25,6 L30,40 L0,40 Z" fill="#C45A3C"/>
+                  <!-- 法杖 -->
+                  <line x1="30" y1="-5" x2="35" y2="45" stroke="#E8C872" stroke-width="1.5"/>
+                  <circle cx="35" cy="-8" r="4" fill="#E8C872" opacity="0.8"/>
+                  <!-- 神鼓 -->
+                  <ellipse cx="-5" cy="25" rx="8" ry="10" fill="#8B5A2B" stroke="#E8C872" stroke-width="0.8"/>
+                  <path d="M-13,25 L-5,22 L3,25 L-5,28 Z" fill="#E8C872" opacity="0.4"/>
+                </g>
+                <!-- 祭坛 -->
+                <g transform="translate(155, 140)" opacity="0.7">
+                  <rect x="10" y="0" width="30" height="8" fill="#5A3725"/>
+                  <rect x="5" y="8" width="40" height="6" fill="#4A2C1E"/>
+                  <rect x="18" y="-8" width="14" height="8" fill="#6B4530"/>
+                  <!-- 白石 -->
+                  <polygon points="25,-15 20,-8 30,-8" fill="#F5E6D3" opacity="0.8"/>
+                </g>
+                <!-- 飘烟效果 -->
+                <g opacity="0.4">
+                  <ellipse cx="170" cy="100" rx="8" ry="3" fill="#E8C872">
+                    <animate attributeName="cy" values="100;70;40" dur="4s" repeatCount="indefinite"/>
+                    <animate attributeName="opacity" values="0.4;0.2;0" dur="4s" repeatCount="indefinite"/>
+                  </ellipse>
+                </g>
+              </g>
+
+              <!-- 羌人谷场景 -->
+              <g id="scene-6" style="display:none">
+                <!-- 神秘峡谷（深色） -->
+                <path d="M0,40 L80,20 L120,50 L0,90 Z" fill="#1a0d08" opacity="0.6"/>
+                <path d="M400,35 L320,15 L280,45 L400,85 Z" fill="#1a0d08" opacity="0.6"/>
+                <!-- 神秘光效 -->
+                <radialGradient id="mysticGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" style="stop-color:#E8C872;stop-opacity:0.15"/>
+                  <stop offset="100%" style="stop-color:#E8C872;stop-opacity:0"/>
+                </radialGradient>
+                <ellipse cx="200" cy="80" rx="120" ry="50" fill="url(#mysticGlow)"/>
+                <!-- 祭塔 -->
+                <g transform="translate(175, 55)" opacity="0.9">
+                  <rect x="20" y="50" width="30" height="25" fill="#4A2C1E" stroke="#E8C872" stroke-width="0.8"/>
+                  <rect x="25" y="30" width="20" height="22" fill="#5A3725" stroke="#E8C872" stroke-width="0.8"/>
+                  <rect x="28" y="12" width="14" height="20" fill="#6B4530" stroke="#E8C872" stroke-width="0.6"/>
+                  <polygon points="28,12 35,0 42,12" fill="#C45A3C" stroke="#E8C872" stroke-width="0.6"/>
+                  <!-- 塔门 -->
+                  <rect x="30" y="58" width="10" height="17" fill="#2C1810"/>
+                  <!-- 塔顶白石 -->
+                  <polygon points="35,-3 30,5 40,5" fill="#F5E6D3" opacity="0.9"/>
+                  <!-- 塔纹 -->
+                  <line x1="35" y1="30" x2="35" y2="50" stroke="#E8C872" stroke-width="0.3" opacity="0.4"/>
+                </g>
+                <!-- 神树 -->
+                <g transform="translate(80, 70)" opacity="0.8">
+                  <rect x="12" y="40" width="6" height="45" fill="#4A2C1E"/>
+                  <!-- 树冠 -->
+                  <ellipse cx="15" cy="30" rx="20" ry="25" fill="#3D5A2D"/>
+                  <ellipse cx="8" cy="35" rx="12" ry="18" fill="#2D4A1D" opacity="0.8"/>
+                  <ellipse cx="22" cy="32" rx="14" ry="20" fill="#2D4A1D" opacity="0.8"/>
+                  <!-- 挂在树上的红绸 -->
+                  <path d="M10,15 Q8,25 10,35" fill="none" stroke="#C45A3C" stroke-width="1.5" opacity="0.7"/>
+                  <path d="M20,10 Q18,22 20,32" fill="none" stroke="#C45A3C" stroke-width="1.2" opacity="0.6"/>
+                </g>
+                <g transform="translate(290, 75)" opacity="0.7">
+                  <rect x="10" y="35" width="5" height="40" fill="#3D2318"/>
+                  <ellipse cx="12.5" cy="28" rx="16" ry="22" fill="#3D5A2D" opacity="0.9"/>
+                  <ellipse cx="6" cy="32" rx="10" ry="15" fill="#2D4A1D" opacity="0.7"/>
+                  <ellipse cx="19" cy="30" rx="11" ry="16" fill="#2D4A1D" opacity="0.7"/>
+                  <path d="M8,12 Q6,22 8,30" fill="none" stroke="#C45A3C" stroke-width="1" opacity="0.5"/>
+                </g>
+                <!-- 羌人剪影 -->
+                <g transform="translate(250, 125)" opacity="0.6">
+                  <circle cx="7" cy="0" r="4" fill="#2C1810"/>
+                  <path d="M2,4 L12,4 L15,22 L-1,22 Z" fill="#2C1810"/>
+                </g>
+                <g transform="translate(265, 128)" opacity="0.5">
+                  <circle cx="6" cy="0" r="3" fill="#2C1810"/>
+                  <path d="M2,3 L10,3 L12,18 L0,18 Z" fill="#2C1810"/>
+                </g>
+              </g>
+              <!-- 云雾装饰 -->
+              <ellipse cx="60" cy="160" rx="50" ry="10" fill="#E8C872" opacity="0.1">
+                <animate attributeName="cx" values="40;80;40" dur="20s" repeatCount="indefinite"/>
+              </ellipse>
+              <ellipse cx="320" cy="155" rx="40" ry="8" fill="#E8C872" opacity="0.08">
+                <animate attributeName="cx" values="340;300;340" dur="25s" repeatCount="indefinite"/>
+              </ellipse>
+            </svg>
+            <!-- 风情图标题遮罩 -->
+            <div class="scenery-overlay">
+              <span class="scenery-label" id="sceneryLabel">茂县 · 中国古羌城</span>
+            </div>
+          </div>
+
+          <section class="station-info" id="stationInfo">
+        <div class="station-info-header">
+          <span class="station-name" id="stationName">茂县站</span>
+          <span class="station-status current" id="stationStatus">当前站点</span>
+        </div>
+        <div class="station-location">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+          </svg>
+          <span id="stationLocation">阿坝州·茂县·凤仪镇</span>
+        </div>
+        <p class="station-desc" id="stationDesc">
+          茂县是全国最大的羌族聚居县，羌族人口约占全县总人口的80%。这里是羌语标准音的重要参考地，
+          保留了最为完整的羌族语言文化传统。
+        </p>
+        <div class="station-culture">
+          <div class="station-culture-title">
+            <svg style="width:12px;height:12px;fill:#E8C872;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L14 10L22 12L14 14L12 22L10 14L2 12L10 10L12 2Z"/>
+            </svg>
+            羌文化特色
+          </div>
+          <div class="station-culture-text" id="stationCulture">
+            茂县是羌族文化的核心区域，中国羌族博物馆坐落于此。每年的羌年庆典最为隆重，
+            萨朗舞、推杆等非遗项目在这里得到了完整传承。
+          </div>
+        </div>
+        <div class="station-words-title">
+          <span>本站词条</span>
+          <strong id="stationWordCount">6 个</strong>
+        </div>
+        <div class="station-words" id="stationWords">
+          <div class="word-card" onclick="speakQiang('rma')">
+            <div class="word-card-top">
+              <span class="word-qiang">rma</span>
+              <button class="word-play-btn" onclick="event.stopPropagation(); speakQiang('rma')">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                </svg>
+              </button>
+            </div>
+            <div class="word-card-bottom">
+              <span class="word-hanzi">日麦</span>
+              <span class="word-meaning">羌人</span>
+            </div>
+          </div>
+          <div class="word-card" onclick="speakQiang('ʂpa')">
+            <div class="word-card-top">
+              <span class="word-qiang">ʂpa</span>
+              <button class="word-play-btn" onclick="event.stopPropagation(); speakQiang('ʂpa')">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                </svg>
+              </button>
+            </div>
+            <div class="word-card-bottom">
+              <span class="word-hanzi">斯巴</span>
+              <span class="word-meaning">酒</span>
+            </div>
+          </div>
+          <div class="word-card" onclick="speakQiang('kʰə')">
+            <div class="word-card-top">
+              <span class="word-qiang">kʰə</span>
+              <button class="word-play-btn" onclick="event.stopPropagation(); speakQiang('kʰə')">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                </svg>
+              </button>
+            </div>
+            <div class="word-card-bottom">
+              <span class="word-hanzi">克</span>
+              <span class="word-meaning">吃</span>
+            </div>
+          </div>
+          <div class="word-card" onclick="speakQiang('tɕi')">
+            <div class="word-card-top">
+              <span class="word-qiang">tɕi</span>
+              <button class="word-play-btn" onclick="event.stopPropagation(); speakQiang('tɕi')">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                </svg>
+              </button>
+            </div>
+            <div class="word-card-bottom">
+              <span class="word-hanzi">基</span>
+              <span class="word-meaning">一</span>
+            </div>
+          </div>
+          <div class="word-card" onclick="speakQiang('mi')">
+            <div class="word-card-top">
+              <span class="word-qiang">mi</span>
+              <button class="word-play-btn" onclick="event.stopPropagation(); speakQiang('mi')">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                </svg>
+              </button>
+            </div>
+            <div class="word-card-bottom">
+              <span class="word-hanzi">米</span>
+              <span class="word-meaning">火</span>
+            </div>
+          </div>
+          <div class="word-card" onclick="speakQiang('ŋu')">
+            <div class="word-card-top">
+              <span class="word-qiang">ŋu</span>
+              <button class="word-play-btn" onclick="event.stopPropagation(); speakQiang('ŋu')">
+                <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                </svg>
+              </button>
+            </div>
+            <div class="word-card-bottom">
+              <span class="word-hanzi">俄吾</span>
+              <span class="word-meaning">水</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 探索按钮 -->
+      <button class="qiang-btn qiang-btn-primary explore-btn" id="exploreBtn">
+        <svg style="width:18px;height:18px;fill:currentColor;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+          <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+        </svg>
+        开始探索本站点
+      </button>
+        </div><!-- /map-right -->
+      </div><!-- /map-layout -->
+    </div>
+
+    <!-- 底部导航栏 -->
+    <nav class="bottom-nav">
+      <a href="passport.html" class="nav-item" data-dom-id="nav-passport" data-nav-key="passport">
+        <div class="nav-item-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M13 3c-4.97 0-9 4.03-9 9H1l3.89 3.89.07.14L9 12H6c0-3.87 3.13-7 7-7s7 3.13 7 7-3.13 7-7 7c-1.93 0-3.68-.79-4.94-2.06l-1.42 1.42C8.27 19.99 10.51 21 13 21c4.97 0 9-4.03 9-9s-4.03-9-9-9zm-1 5v5l4.28 2.54.72-1.21-3.5-2.08V8H12z"/>
+          </svg>
+        </div>
+        <span class="nav-item-label">声纹护照</span>
+      </a>
+      <a href="challenge.html" class="nav-item" data-dom-id="nav-challenge" data-nav-key="challenge">
+        <div class="nav-item-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/>
+          </svg>
+        </div>
+        <span class="nav-item-label">跟读挑战</span>
+      </a>
+      <a href="map.html" class="nav-item active" data-dom-id="nav-map" data-nav-key="map">
+        <div class="nav-item-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M20.5 3l-.16.03L15 5.1 9 3 3.36 4.9c-.21.07-.36.25-.36.48V20.5c0 .28.22.5.5.5l.16-.03L9 18.9l6 2.1 5.64-1.9c.21-.07.36-.25.36-.48V3.5c0-.28-.22-.5-.5-.5zM15 19l-6-2.11V5l6 2.11V19z"/>
+          </svg>
+        </div>
+        <span class="nav-item-label">寻声地图</span>
+      </a>
+      <a href="scenery.html" class="nav-item" data-dom-id="nav-scenery" data-nav-key="scenery">
+        <div class="nav-item-icon">
+          <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M14.5 17l-5-3.5V5c0-.55.45-1 1-1h3c.55 0 1 .45 1 1v8.5l5 3.5v2H2v-2l12.5-8zM21 19v1H3v-1l9-6 9 6zM8.5 10H6v4h2.5v3H4V7h4.5v3z"/>
+          </svg>
+        </div>
+        <span class="nav-item-label">羌地风光</span>
+      </a>
+    </nav>
+  </div>
+
+  <script>
+    // 站点数据
+    const stations = [
+      {
+        id: 1,
+        name: '茂县站',
+        location: '阿坝州·茂县·凤仪镇',
+        status: 'current',
+        statusText: '当前站点',
+        sceneryLabel: '茂县 · 中国古羌城',
+        desc: '茂县是全国最大的羌族聚居县，羌族人口约占全县总人口的80%。这里是羌语标准音的重要参考地，保留了最为完整的羌族语言文化传统。',
+        culture: '茂县是羌族文化的核心区域，中国羌族博物馆坐落于此。每年的羌年庆典最为隆重，萨朗舞、推杆等非遗项目在这里得到了完整传承。',
+        words: [
+          { qiang: 'rma', ipa: 'zɿ', hanzi: '日麦', meaning: '羌人', read: '日麦' },
+          { qiang: 'ʂpa', ipa: 'ʂpɑ', hanzi: '斯巴', meaning: '酒', read: '斯巴' },
+          { qiang: 'kʰə', ipa: 'kʰə', hanzi: '克', meaning: '吃', read: '克' },
+          { qiang: 'tɕi', ipa: 'tɕi', hanzi: '基', meaning: '一', read: '基' },
+          { qiang: 'mi', ipa: 'mi', hanzi: '米', meaning: '火', read: '米' },
+          { qiang: 'ŋu', ipa: 'ŋu', hanzi: '俄吾', meaning: '水', read: '俄吾' }
+        ],
+        wordCount: 6
+      },
+      {
+        id: 2,
+        name: '甘堡藏寨',
+        location: '阿坝州·理县·甘堡乡',
+        status: 'locked',
+        statusText: '待解锁',
+        sceneryLabel: '甘堡藏寨 · 博巴森根',
+        desc: '甘堡藏寨位于理县境内，是嘉绒藏区与羌区的交界地带。这里的语言呈现出藏羌交融的特色，许多词汇在两种语言间相互借用。',
+        culture: '甘堡藏寨是典型的藏羌文化交融地带，建筑风格兼具碉楼与石屋特色。这里的"博巴森根"锅庄舞已被列入国家级非物质文化遗产名录。',
+        words: [
+          { qiang: 'rma', ipa: 'zɿ', hanzi: '日麦', meaning: '羌人', read: '日麦' },
+          { qiang: 'ʂpa', ipa: 'ʂpɑ', hanzi: '斯巴', meaning: '酒', read: '斯巴' },
+          { qiang: 'kʰə', ipa: 'kʰə', hanzi: '克', meaning: '吃', read: '克' },
+          { qiang: 'tɕi', ipa: 'tɕi', hanzi: '基', meaning: '一', read: '基' },
+          { qiang: 'mi', ipa: 'mi', hanzi: '米', meaning: '火', read: '米' },
+          { qiang: 'ŋu', ipa: 'ŋu', hanzi: '俄吾', meaning: '水', read: '俄吾' }
+        ],
+        wordCount: '6'
+      },
+      {
+        id: 3,
+        name: '萝卜寨',
+        location: '阿坝州·汶川县·雁门乡',
+        status: 'locked',
+        statusText: '待解锁',
+        sceneryLabel: '萝卜寨 · 云朵街市',
+        desc: '萝卜寨位于汶川雁门乡，是岷江流域著名的羌寨。这里保留着古老的羌语方言，拥有丰富的口头文学和民歌传统。寨子依山而建，被誉为"云朵上的街市"。',
+        culture: '萝卜寨是羌族建筑艺术的活化石，整个寨子以黄泥片石筑成，巷道纵横交错如迷宫。这里的羌语保留了较多古音，是研究羌族语言演变的重要标本。',
+        words: [
+          { qiang: 'rma', ipa: 'zɿ', hanzi: '日麦', meaning: '羌人', read: '日麦' },
+          { qiang: 'ʂpa', ipa: 'ʂpɑ', hanzi: '斯巴', meaning: '酒', read: '斯巴' },
+          { qiang: 'kʰə', ipa: 'kʰə', hanzi: '克', meaning: '吃', read: '克' },
+          { qiang: 'tɕi', ipa: 'tɕi', hanzi: '基', meaning: '一', read: '基' },
+          { qiang: 'mi', ipa: 'mi', hanzi: '米', meaning: '火', read: '米' },
+          { qiang: 'ŋu', ipa: 'ŋu', hanzi: '俄吾', meaning: '水', read: '俄吾' }
+        ],
+        wordCount: '6'
+      },
+      {
+        id: 4,
+        name: '羌族博物馆',
+        location: '阿坝州·茂县·中国古羌城',
+        status: 'locked',
+        statusText: '待解锁',
+        sceneryLabel: '羌族博物馆 · 羌文化宝库',
+        desc: '中国羌族博物馆是全国唯一的羌族专题博物馆，收藏了大量羌族文物和语言资料。在这里可以系统学习羌语的文字演变和语法特点。',
+        culture: '博物馆藏有珍贵的羌文经书、释比法器和口传文学录音，是了解羌族语言文化的宝库。馆内设有羌语语音体验区，可以听到各方言点的发音对比。',
+        words: [
+          { qiang: 'rma', ipa: 'zɿ', hanzi: '日麦', meaning: '羌人', read: '日麦' },
+          { qiang: 'ʂpa', ipa: 'ʂpɑ', hanzi: '斯巴', meaning: '酒', read: '斯巴' },
+          { qiang: 'kʰə', ipa: 'kʰə', hanzi: '克', meaning: '吃', read: '克' },
+          { qiang: 'tɕi', ipa: 'tɕi', hanzi: '基', meaning: '一', read: '基' },
+          { qiang: 'mi', ipa: 'mi', hanzi: '米', meaning: '火', read: '米' },
+          { qiang: 'ŋu', ipa: 'ŋu', hanzi: '俄吾', meaning: '水', read: '俄吾' }
+        ],
+        wordCount: '6'
+      },
+      {
+        id: 5,
+        name: '曲谷乡',
+        location: '阿坝州·茂县·曲谷乡',
+        status: 'locked',
+        statusText: '待解锁',
+        sceneryLabel: '曲谷乡 · 释比圣地',
+        desc: '曲谷乡位于茂县西北部深山区，交通闭塞使得这里的羌语方言保留得最为原始。山谷中的村落至今仍以羌语为日常交流语言。',
+        culture: '曲谷乡是羌族释比文化的重要传承地，许多老释比仍能用古羌语诵经。这里的多声部民歌被誉为"中国音乐史上的活化石"。',
+        words: [
+          { qiang: 'rma', ipa: 'zɿ', hanzi: '日麦', meaning: '羌人', read: '日麦' },
+          { qiang: 'ʂpa', ipa: 'ʂpɑ', hanzi: '斯巴', meaning: '酒', read: '斯巴' },
+          { qiang: 'kʰə', ipa: 'kʰə', hanzi: '克', meaning: '吃', read: '克' },
+          { qiang: 'tɕi', ipa: 'tɕi', hanzi: '基', meaning: '一', read: '基' },
+          { qiang: 'mi', ipa: 'mi', hanzi: '米', meaning: '火', read: '米' },
+          { qiang: 'ŋu', ipa: 'ŋu', hanzi: '俄吾', meaning: '水', read: '俄吾' }
+        ],
+        wordCount: '6'
+      },
+      {
+        id: 6,
+        name: '羌人谷',
+        location: '阿坝州·汶川县·龙溪乡',
+        status: 'locked',
+        statusText: '终点',
+        sceneryLabel: '羌人谷 · 羌人之源',
+        desc: '羌人谷是岷江流域羌文化的核心圣地，相传是羌人始祖的发源地。谷内保存着最古老的羌语词汇和最神秘的释比经文。',
+        culture: '羌人谷内有古老的祭塔和释比祭坛，是羌族重要的精神文化圣地。传说中羌文的创造者"阿爸白构"就是在这里领悟了文字的奥秘。',
+        words: [
+          { qiang: 'rma', ipa: 'zɿ', hanzi: '日麦', meaning: '羌人', read: '日麦' },
+          { qiang: 'ʂpa', ipa: 'ʂpɑ', hanzi: '斯巴', meaning: '酒', read: '斯巴' },
+          { qiang: 'kʰə', ipa: 'kʰə', hanzi: '克', meaning: '吃', read: '克' },
+          { qiang: 'tɕi', ipa: 'tɕi', hanzi: '基', meaning: '一', read: '基' },
+          { qiang: 'mi', ipa: 'mi', hanzi: '米', meaning: '火', read: '米' },
+          { qiang: 'ŋu', ipa: 'ŋu', hanzi: '俄吾', meaning: '水', read: '俄吾' }
+        ],
+        wordCount: '6'
+      }
+    ];
+
+    // 语音合成 - 使用英语TTS拼读国际音标近似音
+    // 羌语拼音 → 英语近似拼读映射
+    const ipaToEnMap = {
+      'rma': 'rma',
+      'ʂpa': 'shpar',
+      'kʰə': 'kuh',
+      'tɕi': 'jee',
+      'mi': 'mee',
+      'ŋu': 'ngoo',
+      'bæ': 'bah',
+      'ʐu': 'roo',
+      'sə': 'suh',
+      'ŋa': 'ngah',
+      'tʂu': 'joo',
+      'le': 'leh'
+    };
+
+    function speakQiang(qiangText) {
+      if (!qiangText || !window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      // 使用英语语音引擎拼读，更接近羌语发音
+      const enText = ipaToEnMap[qiangText] || qiangText;
+      const utter = new SpeechSynthesisUtterance(enText);
+      utter.lang = 'en-US';
+      utter.rate = 0.7;
+      utter.pitch = 1.0;
+      utter.volume = 1.0;
+      // 尝试选择英语语音
+      const voices = window.speechSynthesis.getVoices();
+      const enVoice = voices.find(v => v.lang.startsWith('en'));
+      if (enVoice) utter.voice = enVoice;
+      window.speechSynthesis.speak(utter);
+    }
+
+    // 预加载语音列表
+    if (window.speechSynthesis) {
+      window.speechSynthesis.getVoices();
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
+
+    let currentStationId = 1;
+
+    // 站点实拍风情图（替换原手绘 SVG）
+    const stationPhotos = {
+      1: '../assets/scenery-maoxian.jpg',
+      2: '../assets/scenery-ganbao.jpg',
+      3: '../assets/scenery-luobu.jpg',
+      4: '../assets/scenery-museum.jpg',
+      5: '../assets/scenery-qugu.jpg',
+      6: '../assets/scenery-qiangren.jpg'
+    };
+
+    function updateStationPhoto(id) {
+      const img = document.getElementById('stationPhoto');
+      const src = stationPhotos[id];
+      if (!img || !src || img.dataset.src === src) return;
+      img.dataset.src = src;
+      img.classList.remove('loaded');
+      const pre = new Image();
+      pre.onload = function () {
+        img.src = src;
+        requestAnimationFrame(function () { img.classList.add('loaded'); });
+      };
+      pre.onerror = function () { img.src = src; img.classList.add('loaded'); };
+      pre.src = src;
+    }
+
+    updateStationPhoto(currentStationId);
+
+    // ===== 进度存档（localStorage） =====
+    const STORE_KEY = 'shengwen-passport-progress-v1';
+
+    function readStore() {
+      try {
+        const raw = localStorage.getItem(STORE_KEY);
+        if (!raw) return null;
+        const data = JSON.parse(raw);
+        if (!data || !Array.isArray(data.unlocked) || !data.unlocked.length) return null;
+        return data;
+      } catch (err) {
+        return null;
+      }
+    }
+
+    const savedProgress = readStore();
+
+    if (savedProgress) {
+      const doneIds = Array.isArray(savedProgress.done) ? savedProgress.done : [];
+      stations.forEach(st => {
+        if (savedProgress.unlocked.indexOf(st.id) >= 0) {
+          if (doneIds.indexOf(st.id) >= 0) {
+            st.status = 'done';
+            st.statusText = '已完成';
+          } else if (st.id === 1) {
+            st.status = 'current';
+            st.statusText = '当前站点';
+          } else {
+            st.status = 'unlocked';
+            st.statusText = '已解锁';
+          }
+        }
+      });
+      document.querySelectorAll('.map-point').forEach(pt => {
+        const pid = parseInt(pt.dataset.station);
+        if (savedProgress.unlocked.indexOf(pid) >= 0) pt.classList.remove('locked');
+      });
+    }
+
+    function updateProgressUI() {
+      const unlocked = stations.filter(s => s.status !== 'locked');
+      const numEl = document.getElementById('progressNum');
+      const fillEl = document.getElementById('progressFill');
+      const wordsEl = document.getElementById('collectedWords');
+      const nextEl = document.getElementById('nextStation');
+      if (numEl) numEl.textContent = unlocked.length;
+      if (fillEl) fillEl.style.width = Math.round(unlocked.length / stations.length * 100) + '%';
+      if (wordsEl) {
+        let n = 0;
+        unlocked.forEach(s => { n += s.words.length; });
+        wordsEl.textContent = '已收集 ' + n + ' 个词条';
+      }
+      if (nextEl) {
+        const next = stations.find(s => s.status === 'locked');
+        nextEl.textContent = next ? '下一站：' + next.name.replace('站', '') : '全部站点已完成';
+      }
+    }
+
+    updateProgressUI();
+
+
+
+    // 地图点位点击交互
+    document.querySelectorAll('.map-point').forEach(point => {
+      point.addEventListener('click', function() {
+        const stationId = parseInt(this.dataset.station);
+        const station = stations.find(s => s.id === stationId);
+        if (!station) return;
+
+        currentStationId = stationId;
+
+        // 更新点位高亮
+        document.querySelectorAll('.map-point').forEach(p => p.classList.remove('current'));
+        this.classList.add('current');
+
+        // 更新站点信息卡
+        document.getElementById('stationName').textContent = station.name;
+        document.getElementById('stationLocation').textContent = station.location;
+        document.getElementById('stationDesc').textContent = station.desc;
+        document.getElementById('stationCulture').textContent = station.culture;
+        document.getElementById('stationWordCount').textContent = station.wordCount + ' 个';
+        document.getElementById('sceneryLabel').textContent = station.sceneryLabel;
+        updateStationPhoto(station.id);
+        // 切换风情图场景
+        for (let i = 1; i <= 6; i++) {
+          const scene = document.getElementById('scene-' + i);
+          if (scene) scene.style.display = (i === station.id) ? '' : 'none';
+        }
+
+        // 更新状态标签
+        const statusEl = document.getElementById('stationStatus');
+        statusEl.textContent = station.statusText;
+        statusEl.className = 'station-status ' + station.status;
+
+        // 更新词条标签
+        const wordsContainer = document.getElementById('stationWords');
+        if (station.status === 'locked') {
+          wordsContainer.innerHTML = station.words.map(w =>
+            `<span class="station-word-tag locked">${w.hanzi}</span>`
+          ).join('');
+        } else {
+          wordsContainer.innerHTML = station.words.map(w => `
+            <div class="word-card" onclick="speakQiang('${w.qiang}')">
+              <div class="word-card-top">
+                <span class="word-qiang">${w.qiang}</span>
+                <button class="word-play-btn" onclick="event.stopPropagation(); speakQiang('${w.qiang}')">
+                  <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3c0-1.77-1.02-3.29-2.5-4.03v8.05c1.48-.73 2.5-2.25 2.5-4.02zM14 3.23v2.06c2.89.86 5 3.54 5 6.71s-2.11 5.85-5 6.71v2.06c4.01-.91 7-4.49 7-8.77s-2.99-7.86-7-8.77z"/>
+                  </svg>
+                </button>
+              </div>
+              <div class="word-card-bottom">
+                <span class="word-hanzi">${w.hanzi}</span>
+                <span class="word-meaning">${w.meaning}</span>
+              </div>
+            </div>
+          `).join('');
+        }
+
+        // 更新按钮
+        const btn = document.getElementById('exploreBtn');
+        if (station.status === 'locked') {
+          btn.textContent = '完成上一站后解锁';
+          btn.classList.add('locked');
+        } else if (station.status === 'done') {
+          btn.innerHTML = `
+            <svg style="width:18px;height:18px;fill:currentColor;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 6v6l4 2"/>
+            </svg>
+            复习本站点
+          `;
+          btn.classList.remove('locked');
+        } else {
+          btn.innerHTML = `
+            <svg style="width:18px;height:18px;fill:currentColor;" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.19 5 4.06 5 7.41 0 2.08-.8 3.97-2.1 5.39z"/>
+            </svg>
+            开始探索本站点
+          `;
+          btn.classList.remove('locked');
+        }
+      });
+    });
+
+
+
+    const resetBtn = document.getElementById('resetProgress');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', function () {
+        if (!window.confirm('确定清空进度，从第 1 关重新开始吗？')) return;
+        try { localStorage.removeItem(STORE_KEY); } catch (err) {}
+        window.location.reload();
+      });
+    }
+    // 探索按钮点击
+    document.getElementById('exploreBtn').addEventListener('click', function() {
+      const station = stations.find(s => s.id === currentStationId);
+      if (!station || station.status === 'locked') return;
+      // 跳转到挑战页，带上站点信息
+      window.location.href = 'challenge.html?station=' + currentStationId;
+    });
+  </script>
+</body>
+</html>
+
+
