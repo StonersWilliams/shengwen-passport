@@ -1177,6 +1177,7 @@ body {
       0 0 0 1px rgba(232, 200, 114, 0.15),
       inset 0 1px 0 rgba(232, 200, 114, 0.05);
     overflow: hidden;
+    overflow: clip; /* 不建立滚动容器，桌面端 sticky 才生效 */
     padding-bottom: calc(var(--bottom-nav-height) + var(--space-4));
   }
 

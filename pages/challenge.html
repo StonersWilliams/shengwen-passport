@@ -5,11 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>跟读挑战 - 声纹相似度对比</title>
 
-  <meta name="description" content="听标准音、按住录音，从音量、时长、有效语音、稳定性与能量包络五个维度给发音打分。">
+  <meta name="description" content="听标准音、按住录音，从音量、时长、有效语音、稳定性与能量包络五个维度给发音打分；每站 8 个词。">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="声纹护照 · 寻声羌谷">
   <meta property="og:title" content="跟读挑战 - 声纹护照·寻声羌谷">
-  <meta property="og:description" content="听标准音、按住录音，从音量、时长、有效语音、稳定性与能量包络五个维度给发音打分。">
+  <meta property="og:description" content="听标准音、按住录音，从音量、时长、有效语音、稳定性与能量包络五个维度给发音打分；每站 8 个词。">
   <meta property="og:url" content="https://stonerswilliams.github.io/shengwen-passport/pages/challenge.html?station=1">
   <meta property="og:image" content="https://stonerswilliams.github.io/shengwen-passport/docs/og-cover.jpg">
   <meta property="og:image:width" content="1200">
@@ -569,7 +569,7 @@
           <div class="word-detail-header">
             <div>
               <div class="word-detail-pinyin">rma</div>
-              <div class="word-detail-phonetic">[ ʐma˧˥ ] · 高平调 · 你好</div>
+              <div class="word-detail-phonetic">[ ʐma˧˥ ] · 北部羌语 · 你好</div>
             </div>
             <button class="play-btn play-btn-gold" onclick="speakQiang('rma')">
               <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -596,7 +596,7 @@
           <!-- 发音提示 -->
           <div class="word-detail-usage" style="margin-top: var(--space-4);">
             <div class="word-detail-usage-title">发音要点</div>
-            <div class="word-detail-usage-qiang">声母 ʐ + 韵母 a + 高平调 ˥</div>
+            <div class="word-detail-usage-qiang">北部羌语记音 ʐme · 朗读为英语近似音</div>
             <div class="word-detail-usage-cn">
               卷舌近音 ʐ 类似普通话 r，但更轻；韵母 a 开口要大；
               声调从3度升到5度，明显上扬
@@ -801,10 +801,26 @@
       'le': 'leh'
     };
 
+    // 通用国际音标 → 英语近似拼读（用于 TTS 朗读，非严格转写）
+    const IPA_RULES = [
+      ['ɖ͡ʐ', 'dr'], ['t͡ɕ', 'j'], ['d͡ʑ', 'j'], ['t͡s', 'ts'], ['d͡z', 'dz'],
+      ['tʂ', 'ch'], ['dʐ', 'j'], ['ʈʂ', 'ch'],
+      ['ʂ', 'sh'], ['ʐ', 'r'], ['ɕ', 'sh'], ['ʑ', 'zh'], ['ɣ', 'gh'], ['ʁ', 'r'],
+      ['χ', 'kh'], ['q', 'k'], ['x', 'kh'], ['ŋ', 'ng'], ['ɴ', 'ng'],
+      ['æ', 'a'], ['ɑ', 'ah'], ['ə', 'uh'], ['ɿ', 'zz'], ['ʴ', 'r'], ['ʰ', ''],
+      ['˧', ''], ['˥', ''], ['˩', ''], ['˨', ''], ['˦', ''], ['ˀ', '']
+    ];
+    function ipaToEn(text) {
+      if (!text) return '';
+      let s = text.toLowerCase();
+      IPA_RULES.forEach(function (pair) { s = s.split(pair[0]).join(pair[1]); });
+      return s.replace(/[\[\]]/g, '').trim();
+    }
+
     function speakQiang(qiangText) {
       if (!qiangText || !window.speechSynthesis) return;
       window.speechSynthesis.cancel();
-      const enText = ipaToEnMap[qiangText] || qiangText;
+      const enText = ipaToEnMap[qiangText] || ipaToEn(qiangText) || qiangText;
       const utter = new SpeechSynthesisUtterance(enText);
       utter.lang = 'en-US';
       utter.rate = 0.7;
@@ -842,13 +858,70 @@
     let currentWordIndex = 0;
 
     // 当前关卡词条（模拟5个词）
-    const challengeWords = [
-      { qiang: 'rma', ipa: 'ʐma˧˥', meaning: '你好', hanzi: '日麦' },
-      { qiang: 'kʰə', ipa: 'kʰə˧˥', meaning: '我', hanzi: '柯俄' },
-      { qiang: 'mi', ipa: 'mi˧˥', meaning: '人', hanzi: '米' },
-      { qiang: 'ŋu', ipa: 'ŋu˧˥', meaning: '水', hanzi: '俄吾' },
-      { qiang: 'tɕi', ipa: 'tɕi˧˥', meaning: '一', hanzi: '基' }
-    ];
+    // 每个站点 8 个词条（3 个核心词 + 5 个站点专属）
+    const stationWords = {
+      1: [
+        { qiang: 'ʐme', ipa: 'ʐme', meaning: '羌人', hanzi: '日麦' },
+        { qiang: 'tsə', ipa: 'tsə', meaning: '水', hanzi: '泽' },
+        { qiang: 'mə', ipa: 'mə', meaning: '火', hanzi: '未' },
+        { qiang: 'ʐʁə', ipa: 'ʐʁə', meaning: '汉人', hanzi: '尔维' },
+        { qiang: 'ʂpɑ', ipa: 'ʂpɑ', meaning: '咂酒', hanzi: '斯巴' },
+        { qiang: 'ʂəqɑʴ', ipa: 'ʂəqɑʴ', meaning: '时间', hanzi: '什嘎' },
+        { qiang: 'ʐɡuʐɡue', ipa: 'ʐɡuʐɡue', meaning: '交谈', hanzi: '日咕日咕' },
+        { qiang: 'kʰə', ipa: 'kʰə', meaning: '吃', hanzi: '克' },
+      ],
+      2: [
+        { qiang: 'ʐme', ipa: 'ʐme', meaning: '羌人', hanzi: '日麦' },
+        { qiang: 'tsə', ipa: 'tsə', meaning: '水', hanzi: '泽' },
+        { qiang: 'mə', ipa: 'mə', meaning: '火', hanzi: '未' },
+        { qiang: 'pe', ipa: 'pe', meaning: '雪', hanzi: '贝' },
+        { qiang: 'mutup', ipa: 'mutup', meaning: '天空', hanzi: '木都' },
+        { qiang: 'mujaq', ipa: 'mujaq', meaning: '太阳', hanzi: '木雅' },
+        { qiang: 'zdam', ipa: 'zdam', meaning: '云', hanzi: '兹丹' },
+        { qiang: 'lapa', ipa: 'lapa', meaning: '花', hanzi: '拉巴' },
+      ],
+      3: [
+        { qiang: 'ʐme', ipa: 'ʐme', meaning: '羌人', hanzi: '日麦' },
+        { qiang: 'tsə', ipa: 'tsə', meaning: '水', hanzi: '泽' },
+        { qiang: 'mə', ipa: 'mə', meaning: '火', hanzi: '未' },
+        { qiang: 'ɣɖ͡ʐə', ipa: 'ɣɖ͡ʐə', meaning: '星星', hanzi: '格哲' },
+        { qiang: 'ɣɖ͡ʐə zda', ipa: 'ɣɖ͡ʐə zda', meaning: '银河', hanzi: '格哲兹达' },
+        { qiang: 'mujy', ipa: 'mujy', meaning: '雨', hanzi: '木依' },
+        { qiang: 'ʐʁupu', ipa: 'ʐʁupu', meaning: '山', hanzi: '日古布' },
+        { qiang: 'xsət͡su̥', ipa: 'xsət͡su̥', meaning: '河', hanzi: '赫色粗' },
+      ],
+      4: [
+        { qiang: 'ʐme', ipa: 'ʐme', meaning: '羌人', hanzi: '日麦' },
+        { qiang: 'tsə', ipa: 'tsə', meaning: '水', hanzi: '泽' },
+        { qiang: 'mə', ipa: 'mə', meaning: '火', hanzi: '未' },
+        { qiang: 'tʂot͡s', ipa: 'tʂot͡s', meaning: '桌子', hanzi: '卓兹' },
+        { qiang: 'ʂuap', ipa: 'ʂuap', meaning: '火把', hanzi: '刷普' },
+        { qiang: 'meʂui', ipa: 'meʂui', meaning: '墨', hanzi: '么水' },
+        { qiang: 'ɕuw', ipa: 'ɕuw', meaning: '龙', hanzi: '休' },
+        { qiang: 'ləɣʐ', ipa: 'ləɣʐ', meaning: '书', hanzi: '勒赫日' },
+      ],
+      5: [
+        { qiang: 'ʐme', ipa: 'ʐme', meaning: '羌人', hanzi: '日麦' },
+        { qiang: 'tsə', ipa: 'tsə', meaning: '水', hanzi: '泽' },
+        { qiang: 'mə', ipa: 'mə', meaning: '火', hanzi: '未' },
+        { qiang: 'ʂtʂosum', ipa: 'ʂtʂosum', meaning: '长老·老师', hanzi: '什卓松' },
+        { qiang: 'xæʴŋu̥', ipa: 'xæʴŋu̥', meaning: '草', hanzi: '海尔吾' },
+        { qiang: 'tsəpɑ', ipa: 'tsəpɑ', meaning: '冰', hanzi: '泽巴' },
+        { qiang: 'bə', ipa: 'bə', meaning: '虫', hanzi: '布' },
+        { qiang: 'ŋu', ipa: 'ŋu', meaning: '是·在', hanzi: '俄吾' },
+      ],
+      6: [
+        { qiang: 'ʐme', ipa: 'ʐme', meaning: '羌人', hanzi: '日麦' },
+        { qiang: 'tsə', ipa: 'tsə', meaning: '水', hanzi: '泽' },
+        { qiang: 'mə', ipa: 'mə', meaning: '火', hanzi: '未' },
+        { qiang: 'punu', ipa: 'punu', meaning: '猫', hanzi: '布努' },
+        { qiang: 'biʑi', ipa: 'biʑi', meaning: '蛇', hanzi: '比日' },
+        { qiang: 'biaɣʐ', ipa: 'biaɣʐ', meaning: '蝌蚪', hanzi: '比亚赫日' },
+        { qiang: 't͡ɕi lapa', ipa: 't͡ɕi lapa', meaning: '熊猫', hanzi: '基拉巴' },
+        { qiang: 'tɕi', ipa: 'tɕi', meaning: '一', hanzi: '基' },
+      ],
+    };
+    let challengeWords = stationWords[1];
 
     // 初始化音频上下文
     async function initAudio() {
@@ -1297,12 +1370,12 @@
       });
     }
 
-    // 下一词按钮
-    const nextWordBtn = document.getElementById('nextWordBtn');
-    if (nextWordBtn) {
-      nextWordBtn.addEventListener('click', function() {
-        currentWordIndex = (currentWordIndex + 1) % challengeWords.length;
-        const word = challengeWords[currentWordIndex];
+    // 词条切换：统一渲染入口
+    function applyWord(word) {
+        const playBtn = document.querySelector('.play-btn');
+        if (playBtn) playBtn.setAttribute('onclick', "speakQiang('" + word.qiang + "')");
+        const stdBtn = document.querySelector('.play-standard-btn');
+        if (stdBtn) stdBtn.setAttribute('onclick', "speakQiang('" + word.qiang + "')");
 
         // 切换动画：先淡出
         const wordCard = document.querySelector('.word-detail-card');
@@ -1315,9 +1388,12 @@
             const pinyinEl = document.querySelector('.word-detail-pinyin');
             const phoneticEl = document.querySelector('.word-detail-phonetic');
             if (pinyinEl) pinyinEl.textContent = word.qiang;
-            if (phoneticEl) phoneticEl.textContent = '[ ' + word.ipa + ' ] · 高平调 · ' + word.meaning;
+            if (phoneticEl) phoneticEl.textContent = '[ ' + word.ipa + ' ] · 北部羌语 · ' + word.meaning;
 
-            const hanziEl = document.querySelector('.word-detail-hanzi');
+            const usageEl = document.querySelector('.word-detail-usage-qiang');
+        if (usageEl) usageEl.textContent = '北部羌语记音 ' + word.ipa + ' · 朗读为英语近似音';
+
+        const hanziEl = document.querySelector('.word-detail-hanzi');
             if (hanziEl) hanziEl.textContent = word.hanzi;
 
             // 重绘标准声纹
@@ -1332,7 +1408,7 @@
           const pinyinEl = document.querySelector('.word-detail-pinyin');
           const phoneticEl = document.querySelector('.word-detail-phonetic');
           if (pinyinEl) pinyinEl.textContent = word.qiang;
-          if (phoneticEl) phoneticEl.textContent = '[ ' + word.ipa + ' ] · 高平调 · ' + word.meaning;
+          if (phoneticEl) phoneticEl.textContent = '[ ' + word.ipa + ' ] · 北部羌语 · ' + word.meaning;
           drawStandardWaveform(word.qiang);
         }
 
@@ -1377,6 +1453,14 @@
         }
 
         recordedDataArray = [];
+    }
+
+    // 下一词按钮
+    const nextWordBtn = document.getElementById('nextWordBtn');
+    if (nextWordBtn) {
+      nextWordBtn.addEventListener('click', function () {
+        currentWordIndex = (currentWordIndex + 1) % challengeWords.length;
+        applyWord(challengeWords[currentWordIndex]);
       });
     }
 
@@ -1418,11 +1502,27 @@
       6: '../assets/scenery-qiangren.jpg'
     };
 
+
+    // 按词数重建步骤指示条
+    function buildLevelSteps(n) {
+      const box = document.querySelector('.level-steps');
+      if (!box) return;
+      let html = '';
+      for (let i = 0; i < n; i++) html += '<div class="level-step' + (i === 0 ? ' current' : '') + '"></div>';
+      box.innerHTML = html;
+    }
+
     // 初始化：根据URL参数设置站点
     function initChallengePage() {
       const params = new URLSearchParams(window.location.search);
       const stationId = parseInt(params.get('station')) || 1;
       const station = stationData[stationId] || stationData[1];
+
+      challengeWords = stationWords[stationId] || stationWords[1];
+      currentWordIndex = 0;
+      buildLevelSteps(challengeWords.length);
+      currentWordIndex = 0;
+      applyWord(challengeWords[0]);
 
       // 更新风情图标签
       const labelEl = document.getElementById('chalSceneryLabel');

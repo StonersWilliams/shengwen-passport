@@ -503,10 +503,26 @@
       'le': 'leh'
     };
 
+    // 通用国际音标 → 英语近似拼读（用于 TTS 朗读，非严格转写）
+    const IPA_RULES = [
+      ['ɖ͡ʐ', 'dr'], ['t͡ɕ', 'j'], ['d͡ʑ', 'j'], ['t͡s', 'ts'], ['d͡z', 'dz'],
+      ['tʂ', 'ch'], ['dʐ', 'j'], ['ʈʂ', 'ch'],
+      ['ʂ', 'sh'], ['ʐ', 'r'], ['ɕ', 'sh'], ['ʑ', 'zh'], ['ɣ', 'gh'], ['ʁ', 'r'],
+      ['χ', 'kh'], ['q', 'k'], ['x', 'kh'], ['ŋ', 'ng'], ['ɴ', 'ng'],
+      ['æ', 'a'], ['ɑ', 'ah'], ['ə', 'uh'], ['ɿ', 'zz'], ['ʴ', 'r'], ['ʰ', ''],
+      ['˧', ''], ['˥', ''], ['˩', ''], ['˨', ''], ['˦', ''], ['ˀ', '']
+    ];
+    function ipaToEn(text) {
+      if (!text) return '';
+      let s = text.toLowerCase();
+      IPA_RULES.forEach(function (pair) { s = s.split(pair[0]).join(pair[1]); });
+      return s.replace(/[\[\]]/g, '').trim();
+    }
+
     function speakQiang(qiangText) {
       if (!qiangText || !window.speechSynthesis) return;
       window.speechSynthesis.cancel();
-      const enText = ipaToEnMap[qiangText] || qiangText;
+      const enText = ipaToEnMap[qiangText] || ipaToEn(qiangText) || qiangText;
       const utter = new SpeechSynthesisUtterance(enText);
       utter.lang = 'en-US';
       utter.rate = 0.7;
@@ -544,12 +560,12 @@
 
   <script>
     const passportStations = [
-      { id: 1, name: '茂县站', words: [{ q: 'rma', h: '日麦', m: '羌人' }, { q: 'ʂpa', h: '斯巴', m: '酒' }, { q: 'kʰə', h: '克', m: '吃' }, { q: 'tɕi', h: '基', m: '一' }, { q: 'mi', h: '米', m: '火' }, { q: 'ŋu', h: '俄吾', m: '水' }] },
-      { id: 2, name: '甘堡藏寨', words: [{ q: 'rma', h: '日麦', m: '羌人' }, { q: 'ʂpa', h: '斯巴', m: '酒' }, { q: 'kʰə', h: '克', m: '吃' }, { q: 'tɕi', h: '基', m: '一' }, { q: 'mi', h: '米', m: '火' }, { q: 'ŋu', h: '俄吾', m: '水' }] },
-      { id: 3, name: '萝卜寨', words: [{ q: 'rma', h: '日麦', m: '羌人' }, { q: 'ʂpa', h: '斯巴', m: '酒' }, { q: 'kʰə', h: '克', m: '吃' }, { q: 'tɕi', h: '基', m: '一' }, { q: 'mi', h: '米', m: '火' }, { q: 'ŋu', h: '俄吾', m: '水' }] },
-      { id: 4, name: '羌族博物馆', words: [{ q: 'rma', h: '日麦', m: '羌人' }, { q: 'ʂpa', h: '斯巴', m: '酒' }, { q: 'kʰə', h: '克', m: '吃' }, { q: 'tɕi', h: '基', m: '一' }, { q: 'mi', h: '米', m: '火' }, { q: 'ŋu', h: '俄吾', m: '水' }] },
-      { id: 5, name: '曲谷乡', words: [{ q: 'rma', h: '日麦', m: '羌人' }, { q: 'ʂpa', h: '斯巴', m: '酒' }, { q: 'kʰə', h: '克', m: '吃' }, { q: 'tɕi', h: '基', m: '一' }, { q: 'mi', h: '米', m: '火' }, { q: 'ŋu', h: '俄吾', m: '水' }] },
-      { id: 6, name: '羌人谷', words: [{ q: 'rma', h: '日麦', m: '羌人' }, { q: 'ʂpa', h: '斯巴', m: '酒' }, { q: 'kʰə', h: '克', m: '吃' }, { q: 'tɕi', h: '基', m: '一' }, { q: 'mi', h: '米', m: '火' }, { q: 'ŋu', h: '俄吾', m: '水' }] }
+      { id: 1, name: '茂县站', words: [{ q: 'ʐme', h: '日麦', m: '羌人' }, { q: 'tsə', h: '泽', m: '水' }, { q: 'mə', h: '未', m: '火' }, { q: 'ʐʁə', h: '尔维', m: '汉人' }, { q: 'ʂpɑ', h: '斯巴', m: '咂酒' }, { q: 'ʂəqɑʴ', h: '什嘎', m: '时间' }, { q: 'ʐɡuʐɡue', h: '日咕日咕', m: '交谈' }, { q: 'kʰə', h: '克', m: '吃' }] },
+      { id: 2, name: '甘堡藏寨', words: [{ q: 'ʐme', h: '日麦', m: '羌人' }, { q: 'tsə', h: '泽', m: '水' }, { q: 'mə', h: '未', m: '火' }, { q: 'pe', h: '贝', m: '雪' }, { q: 'mutup', h: '木都', m: '天空' }, { q: 'mujaq', h: '木雅', m: '太阳' }, { q: 'zdam', h: '兹丹', m: '云' }, { q: 'lapa', h: '拉巴', m: '花' }] },
+      { id: 3, name: '萝卜寨', words: [{ q: 'ʐme', h: '日麦', m: '羌人' }, { q: 'tsə', h: '泽', m: '水' }, { q: 'mə', h: '未', m: '火' }, { q: 'ɣɖ͡ʐə', h: '格哲', m: '星星' }, { q: 'ɣɖ͡ʐə zda', h: '格哲兹达', m: '银河' }, { q: 'mujy', h: '木依', m: '雨' }, { q: 'ʐʁupu', h: '日古布', m: '山' }, { q: 'xsət͡su̥', h: '赫色粗', m: '河' }] },
+      { id: 4, name: '羌族博物馆', words: [{ q: 'ʐme', h: '日麦', m: '羌人' }, { q: 'tsə', h: '泽', m: '水' }, { q: 'mə', h: '未', m: '火' }, { q: 'tʂot͡s', h: '卓兹', m: '桌子' }, { q: 'ʂuap', h: '刷普', m: '火把' }, { q: 'meʂui', h: '么水', m: '墨' }, { q: 'ɕuw', h: '休', m: '龙' }, { q: 'ləɣʐ', h: '勒赫日', m: '书' }] },
+      { id: 5, name: '曲谷乡', words: [{ q: 'ʐme', h: '日麦', m: '羌人' }, { q: 'tsə', h: '泽', m: '水' }, { q: 'mə', h: '未', m: '火' }, { q: 'ʂtʂosum', h: '什卓松', m: '长老·老师' }, { q: 'xæʴŋu̥', h: '海尔吾', m: '草' }, { q: 'tsəpɑ', h: '泽巴', m: '冰' }, { q: 'bə', h: '布', m: '虫' }, { q: 'ŋu', h: '俄吾', m: '是·在' }] },
+      { id: 6, name: '羌人谷', words: [{ q: 'ʐme', h: '日麦', m: '羌人' }, { q: 'tsə', h: '泽', m: '水' }, { q: 'mə', h: '未', m: '火' }, { q: 'punu', h: '布努', m: '猫' }, { q: 'biʑi', h: '比日', m: '蛇' }, { q: 'biaɣʐ', h: '比亚赫日', m: '蝌蚪' }, { q: 't͡ɕi lapa', h: '基拉巴', m: '熊猫' }, { q: 'tɕi', h: '基', m: '一' }] }
     ];
 
     const PASSPORT_KEY = 'shengwen-passport-progress-v1';
@@ -576,9 +592,14 @@
 
       // 统计
       const collected = [];
+      const seen = {};
       passportStations.forEach(st => {
         if (unlockedSet.indexOf(st.id) < 0) return;
-        st.words.forEach(w => collected.push({ w: w, station: st.name, sid: st.id }));
+        st.words.forEach(w => {
+          if (seen[w.q]) return;
+          seen[w.q] = 1;
+          collected.push({ w: w, station: st.name, sid: st.id });
+        });
       });
 
       const statWords = document.getElementById('statWords');
@@ -594,7 +615,7 @@
       // 卡片：已解锁词条在前，空缺补锁定占位
       const grid = document.getElementById('wordGrid');
       if (!grid) return;
-      const SLOTS = 6;
+      const SLOTS = Math.max(6, Math.ceil(collected.length / 2) * 2);
       const cells = [];
       collected.slice(0, SLOTS).forEach(function (item) {
         cells.push(
