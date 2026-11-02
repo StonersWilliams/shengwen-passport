@@ -1,6 +1,13 @@
 # 声纹护照 · 寻声羌谷
 
+[![在线体验](https://img.shields.io/badge/%E5%9C%A8%E7%BA%BF%E4%BD%93%E9%AA%8C-shengwen--passport-E8C872?style=flat-square)](https://stonerswilliams.github.io/shengwen-passport/)
+[![License: MIT](https://img.shields.io/badge/license-MIT-C45A3C?style=flat-square)](LICENSE)
+
+**在线地址：https://stonerswilliams.github.io/shengwen-passport/**
+
 岷江流域羌语方言地图 + 声纹护照的网页体验：六处羌区驿站、跟读打分、进度存档，以及六处羌区的实地风光照片。
+
+![分享封面](docs/og-cover.jpg)
 
 ![寻声地图](docs/preview-map.jpg)
 
