@@ -269,6 +269,21 @@
       letter-spacing: 2px;
       text-align: center;
     }
+    .tab-num {
+      font-size: 10px;
+      opacity: 0.65;
+      margin-left: 2px;
+    }
+    .grid-empty {
+      grid-column: 1 / -1;
+      padding: var(--space-6) var(--space-4);
+      text-align: center;
+      color: var(--text-muted);
+      font-size: var(--font-size-sm);
+      border: 1px dashed var(--border-gold);
+      border-radius: var(--radius-lg);
+      line-height: 1.8;
+    }
   </style>
 </head>
 <body class="qiang-bg-pattern cloud-pattern">
@@ -320,131 +335,51 @@
       </div>
 
       <!-- 词条详情卡 -->
-      <section class="word-detail-section">
-        <div class="word-detail-card">
-          <div class="qiang-four-corners"></div>
-          <div class="word-detail-header">
-            <div>
-              <div class="word-detail-pinyin">rma</div>
-              <div class="word-detail-phonetic">[ ʐma˧˥ ] · 高平调</div>
-            </div>
-            <button class="play-btn" onclick="speakQiang('rma')">
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M8 5v14l11-7z"/>
-              </svg>
-            </button>
-          </div>
-          <div class="word-detail-hanzi">日麦</div>
-          <div class="word-detail-meaning">
-            "你好"，羌语中最常用的问候语，用于见面时打招呼。
-            在羌族人的日常生活中，这是表达友好和尊重的基本用语。
-          </div>
-          <div class="word-detail-tags">
-            <span class="word-detail-tag">问候语</span>
-            <span class="word-detail-tag">日常用语</span>
-            <span class="word-detail-tag">茂县方言</span>
-            <span class="word-detail-tag">入门级</span>
-          </div>
+      <section class="word-detail-section" id="wordDetailSection">
+              <div class="word-detail-card">
+                <div class="qiang-four-corners"></div>
+                <div class="word-detail-header">
+                  <div>
+                    <div class="word-detail-pinyin" id="detailPinyin">ʐme</div>
+                    <div class="word-detail-phonetic" id="detailPhonetic">[ ʐme ] · 北部羌语 · 茂县站</div>
+                  </div>
+                  <button class="play-btn" id="detailPlay" onclick="speakQiang('ʐme')">
+                    <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                      <path d="M8 5v14l11-7z"/>
+                    </svg>
+                  </button>
+                </div>
+                <div class="word-detail-hanzi" id="detailHanzi">日麦</div>
+                <div class="word-detail-meaning" id="detailMeaning">羌人。汉字「日麦」只记音、不表义。</div>
+                <div class="word-detail-tags" id="detailTags">
+                  <span class="word-detail-tag">族称</span>
+                  <span class="word-detail-tag">茂县站</span>
+                  <span class="word-detail-tag">北部羌语</span>
+                </div>
 
-          <!-- 例句 -->
-          <div class="word-detail-usage">
-            <div class="word-detail-usage-title">使用例句</div>
-            <div class="word-detail-usage-qiang">rma, kʰə tɕi mi ŋu?</div>
-            <div class="word-detail-usage-cn">你好，今天吃饭了吗？</div>
-          </div>
+                <!-- 来源 -->
+                <div class="word-detail-usage">
+                  <div class="word-detail-usage-title">词源出处</div>
+                  <div class="word-detail-usage-qiang" id="detailSource">Wiktionary · Northern Qiang · Rrmea</div>
+                  <div class="word-detail-usage-cn" id="detailTip">
+                    记音取自可查证的北部羌语词条；点击喇叭播放的是英语 TTS 拼读的近似音，不是母语者录音。
+                  </div>
+                </div>
+              </div>
+            </section>
 
-          <!-- 文化背景 -->
-          <div class="word-detail-culture">
-            <div class="word-detail-culture-title">
-              <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 2L14 10L22 12L14 14L12 22L10 14L2 12L10 10L12 2Z"/>
-              </svg>
-              文化小知识
-            </div>
-            <div class="word-detail-culture-text">
-              "日麦"（rma）是羌语中最基础的问候词，其词源可以追溯到古羌语的"人"字。
-              在羌族社会中，见面道"日麦"不仅是问候，更是一种身份认同——
-              彼此确认对方是"自家人"。在一些偏远山寨，老人会用"日麦"来称呼同族年轻人，
-              表达亲切和关爱。
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <!-- 波形显示区域 -->
-      <section class="waveform-container">
-        <div class="waveform-label-row">
-          <span style="font-size: var(--font-size-xs); color: var(--text-muted); letter-spacing: 1px;">标准声纹</span>
-          <span class="waveform-duration">1.2s</span>
-        </div>
-        <svg class="waveform-svg" viewBox="0 0 300 80" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <linearGradient id="waveGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" style="stop-color:#E8C872;stop-opacity:0.2"/>
-              <stop offset="50%" style="stop-color:#E8C872;stop-opacity:0.8"/>
-              <stop offset="100%" style="stop-color:#E8C872;stop-opacity:0.2"/>
-            </linearGradient>
-          </defs>
-          <path d="M0,40
-                   Q10,30 20,40
-                   T40,38
-                   T60,25
-                   T80,42
-                   T100,20
-                   T120,38
-                   T140,15
-                   T160,40
-                   T180,22
-                   T200,38
-                   T220,28
-                   T240,42
-                   T260,32
-                   T280,40
-                   T300,38"
-                fill="none"
-                stroke="url(#waveGradient)"
-                stroke-width="2"
-                stroke-linecap="round"/>
-          <path d="M0,40
-                   Q10,50 20,40
-                   T40,42
-                   T60,55
-                   T80,38
-                   T100,60
-                   T120,42
-                   T140,65
-                   T160,40
-                   T180,58
-                   T200,42
-                   T220,52
-                   T240,38
-                   T260,48
-                   T280,40
-                   T300,42"
-                fill="none"
-                stroke="url(#waveGradient)"
-                stroke-width="2"
-                stroke-linecap="round"/>
-          <circle cx="140" cy="15" r="3" fill="#E8C872" opacity="0.8"/>
-          <circle cx="140" cy="65" r="3" fill="#E8C872" opacity="0.8"/>
-        </svg>
-      </section>
+      
 
       <!-- 录音按钮区域 -->
       <section class="record-section">
-        <div class="record-section-title">录下你的声音</div>
-        <div class="record-btn-container">
-          <button class="record-btn animate-pulse-red">
-            <svg class="record-btn-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-              <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
-              <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
-            </svg>
-          </button>
-          <p class="record-btn-label">按住录音</p>
-        </div>
+        <div class="record-section-title">去录一条声纹</div>
+        <a class="explore-btn" href="challenge.html?station=1" style="text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:14px 32px;margin-top:var(--space-4);border-radius:999px;background:linear-gradient(135deg,#E8C872,#C45A3C);color:#2A1710;font-weight:700;letter-spacing:0.5px;box-shadow:0 8px 22px rgba(196,90,60,0.35);">
+          进入跟读挑战
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </a>
         <p class="hint-text record-hint">
-          点击上方按钮，跟读羌语词条<br>
-          <span class="hint-text-gold">你的声音将被记录为声纹护照</span>
+          录音与打分在「跟读挑战」里：按住麦克风录一条，<br>
+          <span class="hint-text-gold">75 分以上即可解锁下一站</span>
         </p>
       </section>
     </div>
@@ -588,6 +523,12 @@
 
     function renderPassport() {
       const prog = readPassportProgress();
+      const cta = document.querySelector('.record-section a');
+      if (cta && prog) {
+        let nextSid = 1;
+        for (let i = 1; i <= 6; i++) { if (prog.done.indexOf(i) < 0) { nextSid = i; break; } }
+        cta.setAttribute('href', 'challenge.html?station=' + nextSid);
+      }
       const unlockedSet = prog.unlocked;
 
       // 统计
@@ -612,39 +553,149 @@
       const avg = scoreVals.length ? Math.round(scoreVals.reduce((a, b) => a + b, 0) / scoreVals.length) : 0;
       if (statScore) statScore.textContent = avg ? avg + '%' : '--';
 
-      // 卡片：已解锁词条在前，空缺补锁定占位
+      // 卡片：按分类过滤渲染，空缺补锁定占位
+      window.__collected = collected;
+      window.__category = window.__category || '全部';
+      renderCategoryTabs(collected);
+      renderWordGrid();
+    }
+
+    const CAT_BY_MEANING = {
+      '羌人': '族称', '汉人': '族称',
+      '水': '自然', '火': '自然', '雪': '自然', '天空': '自然', '太阳': '自然', '云': '自然',
+      '星星': '自然', '银河': '自然', '雨': '自然', '山': '自然', '河': '自然', '冰': '自然',
+      '草': '自然', '花': '自然',
+      '咂酒': '饮食', '吃': '饮食',
+      '时间': '生活', '交谈': '生活', '桌子': '生活', '火把': '生活', '墨': '生活',
+      '书': '生活', '长老·老师': '生活', '是·在': '生活',
+      '猫': '动植物', '蛇': '动植物', '蝌蚪': '动植物', '熊猫': '动植物', '虫': '动植物', '龙': '动植物',
+      '一': '数字'
+    };
+    const CAT_ORDER = ['族称', '自然', '生活', '饮食', '动植物', '数字', '其他'];
+
+    function catOf(meaning) {
+      return CAT_BY_MEANING[meaning] || '其他';
+    }
+
+    function renderCategoryTabs(collected) {
+      const nav = document.querySelector('.category-tabs');
+      if (!nav) return;
+      const counts = {};
+      collected.forEach(function (it) {
+        const c = catOf(it.w.m);
+        counts[c] = (counts[c] || 0) + 1;
+      });
+      const cats = CAT_ORDER.filter(function (c) { return counts[c]; });
+      if (window.__category !== '全部' && cats.indexOf(window.__category) < 0) {
+        window.__category = '全部';
+      }
+      const tabs = ['全部'].concat(cats);
+      nav.innerHTML = tabs.map(function (c) {
+        const n = c === '全部' ? collected.length : counts[c];
+        return '<button class="category-tab' + (window.__category === c ? ' active' : '') +
+               '" data-cat="' + c + '">' + c + ' <span class="tab-num">' + n + '</span></button>';
+      }).join('');
+      nav.querySelectorAll('.category-tab').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          window.__category = btn.getAttribute('data-cat');
+          renderCategoryTabs(window.__collected);
+          renderWordGrid();
+        });
+      });
+    }
+
+    const SOURCE_BY_MEANING = {
+      '羌人': 'Rrmea', '水': 'ze', '火': 'me', '汉人': 'Rrvve', '时间': 'shegvar',
+      '交谈': 'dhuwu rrggurrggue', '雪': 'bea', '天空': 'mudub', '太阳': 'muyagv',
+      '云': 'ssddam', '花': 'laba', '星星': 'hhdhe', '银河': 'hhdhe ssdda', '雨': 'muyiu',
+      '山': 'rrvvubu', '河': 'hsezw', '桌子': 'zhoz', '火把': 'shuab', '墨': 'meashui',
+      '龙': 'xuw', '书': 'lehhrr', '长老·老师': 'shzhosum', '草': 'haerngw', '冰': 'zeba',
+      '虫': 'bbe', '是·在': 'ngu', '猫': 'bunu', '蛇': 'bbixxi', '蝌蚪': 'bbiavvrr',
+      '熊猫': 'ji laba'
+    };
+
+    function showWordDetail(item) {
+      if (!item) return;
+      const w = item.w;
+      const set = function (id, text) {
+        const el = document.getElementById(id);
+        if (el) el.textContent = text;
+      };
+      set('detailPinyin', w.q);
+      set('detailPhonetic', '[ ' + w.q + ' ] · 北部羌语 · ' + item.station);
+      set('detailHanzi', w.h);
+      set('detailMeaning', w.m + '。汉字「' + w.h + '」只记音、不表义。');
+
+      const tags = document.getElementById('detailTags');
+      if (tags) {
+        tags.innerHTML = '<span class="word-detail-tag">' + catOf(w.m) + '</span>' +
+          '<span class="word-detail-tag">' + item.station + '</span>' +
+          '<span class="word-detail-tag">北部羌语</span>';
+      }
+
+      const src = SOURCE_BY_MEANING[w.m];
+      set('detailSource', src
+        ? 'Wiktionary · Northern Qiang · ' + src
+        : '站内既有记音（暂无公开 IPA 出处）');
+      set('detailTip', src
+        ? '记音取自可查证的北部羌语词条；点击喇叭播放的是英语 TTS 拼读的近似音，不是母语者录音。'
+        : '这个词没有查到公开的北羌语 IPA 资料，记音沿用站点原有版本，可信度较低。');
+
+      const btn = document.getElementById('detailPlay');
+      if (btn) btn.setAttribute('onclick', "speakQiang('" + w.q + "')");
+    }
+
+    function pickWord(q) {
+      const list = window.__collected || [];
+      const item = list.filter(function (it) { return it.w.q === q; })[0];
+      if (item) showWordDetail(item);
+      if (typeof speakQiang === 'function') speakQiang(q);
+    }
+
+    function renderWordGrid() {
       const grid = document.getElementById('wordGrid');
       if (!grid) return;
-      const SLOTS = Math.max(6, Math.ceil(collected.length / 2) * 2);
-      const cells = [];
-      collected.slice(0, SLOTS).forEach(function (item) {
-        cells.push(
-          '<div class="word-card collected" onclick="speakQiang(\'' + item.w.q + '\')">' +
+      const collected = window.__collected || [];
+      const cat = window.__category || '全部';
+      const list = cat === '全部'
+        ? collected
+        : collected.filter(function (it) { return catOf(it.w.m) === cat; });
+
+      if (!list.length) {
+        grid.innerHTML = '<div class="grid-empty">这个分类还没有收集到词条，去「寻声地图」继续探索吧。</div>';
+        return;
+      }
+
+      const cells = list.map(function (item) {
+        return '<div class="word-card collected" onclick="pickWord(\'' + item.w.q + '\')">' +
             '<div class="word-card-collected">' + CHECK_SVG + '</div>' +
             '<div class="word-card-pinyin">' + item.w.q + '</div>' +
             '<div class="word-card-hanzi">' + item.w.h + '</div>' +
-            '<span class="word-card-category">' + item.station + '</span>' +
+            '<span class="word-card-category">' + catOf(item.w.m) + ' · ' + item.station + '</span>' +
             '<div class="word-card-station">' + item.w.m + ' · 点击听音</div>' +
-          '</div>'
-        );
+          '</div>';
       });
-      for (let i = cells.length; i < SLOTS; i++) {
-        cells.push(
-          '<div class="word-card locked">' +
-            '<div class="word-card-lock-icon">' + LOCK_SVG + '</div>' +
-            '<div class="word-card-pinyin">???</div>' +
-            '<div class="word-card-hanzi">未解锁</div>' +
-            '<span class="word-card-category">待探索</span>' +
-            '<div class="word-card-station">前往地图探索</div>' +
-          '</div>'
-        );
+
+      if (cat === '全部') {
+        const SLOTS = Math.max(6, Math.ceil(list.length / 2) * 2);
+        for (let i = cells.length; i < SLOTS; i++) {
+          cells.push(
+            '<div class="word-card locked">' +
+              '<div class="word-card-lock-icon">' + LOCK_SVG + '</div>' +
+              '<div class="word-card-pinyin">???</div>' +
+              '<div class="word-card-hanzi">未解锁</div>' +
+              '<span class="word-card-category">待探索</span>' +
+              '<div class="word-card-station">前往地图探索</div>' +
+            '</div>'
+          );
+        }
       }
       grid.innerHTML = cells.join('');
+      if (list.length && cat === '全部') showWordDetail(list[0]);
     }
 
     document.addEventListener('DOMContentLoaded', renderPassport);
     window.addEventListener('pageshow', renderPassport);
-  </script>
+    </script>
 </body>
 </html>
-
